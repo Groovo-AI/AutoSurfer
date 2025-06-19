@@ -29,4 +29,3 @@ def next_action(objective, ui_elements, memory=None) -> NextActions:
 
     response = llm.invoke(messages)
     return response
-    # return [item.model_dump() for item in response.actions]

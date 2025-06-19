@@ -3,9 +3,9 @@
 **AutoSurfer** is an open-source platform where autonomous AI agents live digital lives.
 These agents don't just automate tasks — they feel, think, and evolve as they surf the web like real humans.
 
-> _Imagine a browser powered by a virtual being — with personality, memory, emotion, and purpose._
+## Demo
 
----
+![Demo](assets/demo.gif)
 
 ## 🚀 What Is AutoSurfer?
 

@@ -1,4 +1,3 @@
-# autosurfer/agent/browser/action_executor.py
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 from autosurfer.logger import logger
@@ -75,20 +74,29 @@ class BrowserActionExecutor:
     def _goto(self, url):
         self.page.goto(url, wait_until="networkidle")
 
-    def _click(self, selector):
-        self.page.click(selector)
+    def _click(self, selector: str):
+        # support both CSS and XPath selectors
+        if selector.startswith("/"):
+            # Playwright XPath syntax: prefix with 'xpath='
+            self.page.click(f"xpath={selector}")
+        else:
+            self.page.click(selector)
 
-    def _fill(self, selector, value):
-        self.page.fill(selector, value)
+    def _fill(self, selector: str, value: str):
+        # support both CSS and XPath selectors
+        if selector.startswith("/"):
+            self.page.fill(f"xpath={selector}", value)
+        else:
+            self.page.fill(selector, value)
 
-    def _press(self, key):
+    def _press(self, key: str):
         self.page.keyboard.press(key)
 
-    def _wait(self, seconds):
+    def _wait(self, seconds: float):
         import time
         time.sleep(seconds)
 
-    def _scroll(self, direction, selector=None):
+    def _scroll(self, direction: str, selector: str = None):
         if selector:
             el = self.page.query_selector(selector)
             if el:
@@ -97,5 +105,5 @@ class BrowserActionExecutor:
             key = "PageDown" if direction == "down" else "PageUp"
             self.page.keyboard.press(key)
 
-    def _done(self, summary):
+    def _done(self, summary: str):
         logger.info(f"[DONE] {summary}")

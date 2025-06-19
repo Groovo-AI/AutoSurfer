@@ -1,0 +1,23 @@
+[project]
+name = "autosurfer"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "easyocr>=1.7.2",
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.25",
+    "langchain-openai>=0.3.22",
+    "mss>=10.0.0",
+    "openai>=1.86.0",
+    "pillow>=11.2.1",
+    "playwright>=1.52.0",
+    "pyautogui>=0.9.54",
+    "python-dotenv>=1.1.0",
+    "ultralytics>=8.3.153",
+    "undetected-chromedriver>=3.5.5",
+    "watchfiles>=1.0.5",
+]
+
+[project.scripts]
+dev = "runner:main"

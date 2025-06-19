@@ -5,8 +5,6 @@ These agents don't just automate tasks — they feel, think, and evolve as they 
 
 > _Imagine a browser powered by a virtual being — with personality, memory, emotion, and purpose._
 
-![AutoSurfer Banner](https://your-image-url.com/banner.png) <!-- Optional: Replace with real image if needed -->
-
 ---
 
 ## 🚀 What Is AutoSurfer?
@@ -25,15 +23,15 @@ It’s not just a bot. It’s a digital entity.
 
 ## ✨ Features
 
-| Feature                  | Status      | Description                                                    |
-| ------------------------ | ----------- | -------------------------------------------------------------- |
-| **Browser Agent**        | ✅ Done     | Playwright-powered browser controlled by Python agent          |
-| **DOM Annotation**       | ✅ Done     | Highlights and identifies all interactive UI elements          |
-| **Modular Architecture** | ✅ Done     | Clean directory structure for scalable agent development       |
-| **LLM Integration**      | 🔜 Upcoming | Language models will decide the agent's actions                |
-| **Emotional Engine**     | 🔜 Upcoming | Mood and emotion simulation based on web experience            |
-| **Task Memory**          | 🔜 Upcoming | Agents remember past actions and context                       |
-| **Persona Generator**    | 🔜 Upcoming | Create agents with unique backstories, preferences, and voices |
+| Feature                       | Status        | Description                                                           |
+| ----------------------------- | ------------- | --------------------------------------------------------------------- |
+| **Browser Agent**             | ✅ Done       | Playwright-powered browser controlled by Python agent                 |
+| **DOM Annotation**            | ✅ Done       | Highlights and identifies all interactive UI elements                 |
+| **LLM-Driven Thinking**       | 🛠 In Progress | Agents use LLMs to plan next steps based on current and prior context |
+| **Task Memory**               | 🛠 In Progress | Agent tracks task history and remembers the overall objective         |
+| **Sequential Task Execution** | 🛠 In Progress | Agent completes one task at a time with deliberate reasoning          |
+| **Emotional Engine**          | 🔜 Planned    | Mood and emotion simulation based on web experience                   |
+| **Persona Generator**         | 🔜 Planned    | Create agents with unique backstories, preferences, and voices        |
 
 ---
 
@@ -56,22 +54,6 @@ AutoSurfer agents are inspired by real human traits:
 
 ---
 
-## 📁 Project Structure (Simplified)
-
-```
-autosurfer/
-├── agent/
-│   └── browser/
-│       └── dom/
-│           └── annotateDom.js        # UI detection script
-├── config.py                        # App configuration
-├── logger.py                        # Logging setup
-├── main.py                          # Entry point
-├── playground.py                    # Experimental runner
-```
-
----
-
 ## 🔧 Getting Started
 
 ```bash
@@ -81,15 +63,6 @@ uv sync
 # 2. Run the agent (dev mode)
 make dev
 ```
-
----
-
-## 🤖 Coming Soon
-
-- 🔁 **Multi-step planning** using LLMs
-- 🎭 **Agent personas** with memory and story arcs
-- 📊 **Task visualizer** for seeing what agents are doing
-- 🌐 **Multi-agent coordination**
 
 ---
 
@@ -116,13 +89,3 @@ If you believe in agents that _feel human_, share the project on:
 - Reddit
 - Hacker News
 - Your blog ❤️
-
----
-
-## 👨‍💻 Creator
-
-**Ankur** — building digital beings that surf the web like humans do.
-
-> Follow the journey. Contribute to the evolution. Watch the agents come alive.
-
----

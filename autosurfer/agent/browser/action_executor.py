@@ -1,21 +1,12 @@
-from pathlib import Path
-from playwright.sync_api import sync_playwright
 from autosurfer.logger import logger
 from autosurfer.llm.response_schema.browser_actions import NextActions
-
-JS_PATH = Path(__file__).parent / "dom" / "annotateDom.js"
-JS_CODE = JS_PATH.read_text() if JS_PATH.exists() else ""
+from playwright.sync_api import Page, Browser
 
 
 class BrowserActionExecutor:
-    def __init__(self, headless: bool = False):
-        self.playwright = sync_playwright().start()
-        self.browser = self.playwright.chromium.launch(
-            headless=headless, args=["--start-maximized"])
-        ctx = self.browser.new_context(viewport=None)
-        if JS_CODE:
-            ctx.add_init_script(JS_CODE)
-        self.page = ctx.new_page()
+    def __init__(self, page: Page, browser_session: Browser):
+        self.page = page
+        self.browser = browser_session
         self._dispatch = {
             "goto": self._goto,
             "click": self._click,

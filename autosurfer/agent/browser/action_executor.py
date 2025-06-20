@@ -58,10 +58,6 @@ class BrowserActionExecutor:
     def remove_annotation(self):
         self.page.evaluate("() => window.clearInteractiveHighlights()")
 
-    def close(self):
-        self.browser.close()
-        self.playwright.stop()
-
     def _goto(self, url):
         self.page.goto(url, wait_until="networkidle")
 

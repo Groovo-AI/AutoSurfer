@@ -21,30 +21,13 @@ class BrowserManager:
         self.playwright: Playwright = sync_playwright().start()
         self.browser: Browser = self.playwright.chromium.launch(
             headless=settings.headless, args=["--start-maximized"].append(self.settings.args))
-        context = self.browser.new_context(viewport=None)
+        self.context = self.browser.new_context(viewport=None)
         self.page: Optional[Page] = None
 
         if JS_CODE:
-            context.add_init_script(JS_CODE)
-        self.page = context.new_page()
-        logger.info(f'[Browser Settings]: {self.settings}')
-
-    def launch(self):
-        self.playwright = sync_playwright().start()
-        args = ["--start-maximized"]
-        if self.settings.args:
-            args.extend(self.settings.args)
-
-        self.browser = self.playwright.chromium.launch(
-            headless=self.settings.headless,
-            args=args
-        )
-        self.context = self.browser.new_context(viewport=None)
-
-        if JS_CODE:
             self.context.add_init_script(JS_CODE)
-
         self.page = self.context.new_page()
+        logger.info(f'[Browser Settings]: {self.settings}')
 
     def close(self):
         if self.context:

@@ -1,8 +1,10 @@
-from playwright.sync_api import sync_playwright, Playwright, Browser,  Page
+from playwright.sync_api import sync_playwright, Playwright, Browser
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional
 from autosurfer.logger import logger
+from playwright_stealth.stealth import Stealth
+
 
 JS_PATH = Path(__file__).parent / "dom" / "annotateDom.js"
 JS_CODE = JS_PATH.read_text() if JS_PATH.exists() else ""
@@ -22,11 +24,12 @@ class BrowserManager:
         self.browser: Browser = self.playwright.chromium.launch(
             headless=settings.headless, args=["--start-maximized"].append(self.settings.args))
         self.context = self.browser.new_context(viewport=None)
-        self.page: Optional[Page] = None
-
         if JS_CODE:
             self.context.add_init_script(JS_CODE)
         self.page = self.context.new_page()
+
+        if settings.stealth_mode:
+            Stealth().apply_stealth_sync(page_or_context=self.page)
         logger.info(f'[Browser Settings]: {self.settings}')
 
     def close(self):

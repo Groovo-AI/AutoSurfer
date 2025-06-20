@@ -12,6 +12,7 @@ dependencies = [
     "openai>=1.86.0",
     "pillow>=11.2.1",
     "playwright>=1.52.0",
+    "playwright-stealth>=2.0.0",
     "pyautogui>=0.9.54",
     "python-dotenv>=1.1.0",
     "ultralytics>=8.3.153",

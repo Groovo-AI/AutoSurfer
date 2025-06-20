@@ -3,6 +3,7 @@ from autosurfer.logger import logger
 from autosurfer.agent.brain.task_planner import next_action
 from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
 from autosurfer.agent.browser.action_executor import BrowserActionExecutor
+import time
 
 
 class AutoSurferAgent:
@@ -32,6 +33,8 @@ class AutoSurferAgent:
                 logger.info(f"[Agent Plan] {plan}")
                 executor.execute(plan)
                 memory.append(plan)
+                time.sleep(10)
+
                 if any(item.action.type == "done" for item in plan.actions):
                     logger.info("✅ Task completed by agent.")
                     break

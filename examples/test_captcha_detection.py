@@ -16,8 +16,6 @@ from pathlib import Path
 # Add root path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Use logger.info / logger.error instead of print
-
 
 def test_captcha_detection():
     """Test captcha detection capabilities"""
@@ -140,13 +138,6 @@ def main():
     logger.info("\n" + "="*60)
     logger.info("SIMPLE CAPTCHA DETECTION TEST SUITE COMPLETED")
     logger.info("="*60)
-    logger.info("\n📝 Simple Captcha Detection Features:")
-    logger.info("✅ Lightweight captcha detection")
-    logger.info("✅ No complex solving logic")
-    logger.info("✅ Graceful task termination")
-    logger.info("✅ Clean error messages")
-    logger.info("✅ Future-ready for screen streaming")
-    logger.info("✅ Minimal dependencies")
 
 
 if __name__ == "__main__":

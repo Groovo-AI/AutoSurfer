@@ -30,6 +30,7 @@ It’s not just a bot. It’s a digital entity.
 | **LLM-Driven Thinking**       | 🛠 In Progress | Agents use LLMs to plan next steps based on current and prior context |
 | **Task Memory**               | 🛠 In Progress | Agent tracks task history and remembers the overall objective         |
 | **Sequential Task Execution** | 🛠 In Progress | Agent completes one task at a time with deliberate reasoning          |
+| **Captcha Handling**          | 🔜 Planned    | Detect captchas and pause tasks for remote human solving              |
 | **Emotional Engine**          | 🔜 Planned    | Mood and emotion simulation based on web experience                   |
 | **Persona Generator**         | 🔜 Planned    | Create agents with unique backstories, preferences, and voices        |
 

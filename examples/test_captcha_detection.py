@@ -12,15 +12,17 @@ import sys
 import time
 from pathlib import Path
 
-# Add the autosurfer package to the path
+# Add root path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Use logger.info / logger.error instead of print
 
 
 def test_captcha_detection():
     """Test captcha detection capabilities"""
-    print("\n" + "="*60)
-    print("TESTING SIMPLE CAPTCHA DETECTION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING SIMPLE CAPTCHA DETECTION")
+    logger.info("="*60)
 
     from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
 
@@ -41,21 +43,21 @@ def test_captcha_detection():
         result = captcha_handler.handle_captcha_detection()
 
         if result:
-            print("✅ No captcha detected - task can continue")
+            logger.info("✅ No captcha detected - task can continue")
         else:
-            print("🔒 Captcha detected - task would be terminated")
+            logger.info("🔒 Captcha detected - task would be terminated")
 
     except Exception as e:
-        print(f"❌ Captcha detection test failed: {e}")
+        logger.error(f"❌ Captcha detection test failed: {e}")
     finally:
         browser_manager.close()
 
 
 def test_agent_with_captcha_detection():
     """Test the agent with captcha detection"""
-    print("\n" + "="*60)
-    print("TESTING AGENT WITH CAPTCHA DETECTION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING AGENT WITH CAPTCHA DETECTION")
+    logger.info("="*60)
 
     objective = "Go to google.com and search for 'test' - exit if captcha appears"
 
@@ -63,16 +65,16 @@ def test_agent_with_captcha_detection():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ Agent with captcha detection completed!")
+        logger.info("✅ Agent with captcha detection completed!")
     except Exception as e:
-        print(f"❌ Agent test failed: {e}")
+        logger.error(f"❌ Agent test failed: {e}")
 
 
 def test_captcha_detection_methods():
     """Test individual captcha detection methods"""
-    print("\n" + "="*60)
-    print("TESTING CAPTCHA DETECTION METHODS")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING CAPTCHA DETECTION METHODS")
+    logger.info("="*60)
 
     from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
 
@@ -93,29 +95,30 @@ def test_captcha_detection_methods():
         captcha_info = captcha_handler.detect_captcha()
 
         if captcha_info:
-            print(f"🔒 Captcha detected: {captcha_info.type}")
-            print(f"   Confidence: {captcha_info.confidence}")
-            print(f"   Selectors: {captcha_info.selectors}")
+            logger.info(f"🔒 Captcha detected: {captcha_info.type}")
+            logger.info(f"   Confidence: {captcha_info.confidence}")
+            logger.info(f"   Selectors: {captcha_info.selectors}")
         else:
-            print("✅ No captcha detected")
+            logger.info("✅ No captcha detected")
 
-        print("✅ Captcha detection methods test completed!")
+        logger.info("✅ Captcha detection methods test completed!")
 
     except Exception as e:
-        print(f"❌ Captcha detection methods test failed: {e}")
+        logger.error(f"❌ Captcha detection methods test failed: {e}")
     finally:
         browser_manager.close()
 
 
 def main():
     """Run simplified captcha detection tests"""
-    print("🔒 AutoSurfer Simple Captcha Detection Test Suite")
-    print("This demonstrates the simplified captcha detection approach")
+    logger.info("🔒 AutoSurfer Simple Captcha Detection Test Suite")
+    logger.info("This demonstrates the simplified captcha detection approach")
 
     # Check if OpenAI API key is set
     if not os.getenv("OPENAI_API_KEY"):
-        print("❌ OPENAI_API_KEY environment variable is required")
-        print("Please set it with: export OPENAI_API_KEY='your-api-key'")
+        logger.error("❌ OPENAI_API_KEY environment variable is required")
+        logger.error(
+            "Please set it with: export OPENAI_API_KEY='your-api-key'")
         return
 
     # Run tests
@@ -130,21 +133,21 @@ def main():
             test()
             time.sleep(3)  # Brief pause between tests
         except KeyboardInterrupt:
-            print("\n⏹️  Test interrupted by user")
+            logger.info("\n⏹️  Test interrupted by user")
             break
         except Exception as e:
-            print(f"❌ Test failed with error: {e}")
+            logger.error(f"❌ Test failed with error: {e}")
 
-    print("\n" + "="*60)
-    print("SIMPLE CAPTCHA DETECTION TEST SUITE COMPLETED")
-    print("="*60)
-    print("\n📝 Simple Captcha Detection Features:")
-    print("✅ Lightweight captcha detection")
-    print("✅ No complex solving logic")
-    print("✅ Graceful task termination")
-    print("✅ Clean error messages")
-    print("✅ Future-ready for screen streaming")
-    print("✅ Minimal dependencies")
+    logger.info("\n" + "="*60)
+    logger.info("SIMPLE CAPTCHA DETECTION TEST SUITE COMPLETED")
+    logger.info("="*60)
+    logger.info("\n📝 Simple Captcha Detection Features:")
+    logger.info("✅ Lightweight captcha detection")
+    logger.info("✅ No complex solving logic")
+    logger.info("✅ Graceful task termination")
+    logger.info("✅ Clean error messages")
+    logger.info("✅ Future-ready for screen streaming")
+    logger.info("✅ Minimal dependencies")
 
 
 if __name__ == "__main__":

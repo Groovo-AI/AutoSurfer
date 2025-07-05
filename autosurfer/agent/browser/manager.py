@@ -56,7 +56,7 @@ class BrowserManager:
         if settings.stealth_mode:
             Stealth().apply_stealth_sync(page_or_context=self.page)
 
-        logger.info(f'[Browser Settings]: {self.settings}')
+        logger.info(f'[Browser Settings]: {self.settings.__dict__}')
 
     def close(self):
         try:

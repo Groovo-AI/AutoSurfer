@@ -17,7 +17,7 @@ AutoSurfer is the foundation for building **lifelike AI browser agents** that ca
 - 😌 Express a **mood** that changes daily based on their digital experiences
 - 🧬 Simulate lifelike usage patterns (scrolling, mouse movement, hesitations)
 
-It’s not just a bot. It’s a digital entity.
+It's not just a bot. It's a digital entity.
 
 ---
 
@@ -28,9 +28,9 @@ It’s not just a bot. It’s a digital entity.
 | **Browser Agent**             | ✅ Done       | Playwright-powered browser controlled by Python agent                 |
 | **DOM Annotation**            | ✅ Done       | Highlights and identifies all interactive UI elements                 |
 | **LLM-Driven Thinking**       | 🛠 In Progress | Agents use LLMs to plan next steps based on current and prior context |
-| **Task Memory**               | 🛠 In Progress | Agent tracks task history and remembers the overall objective         |
+| **Task Memory**               | ✅ Done       | Agent tracks task history and remembers the overall objective         |
 | **Sequential Task Execution** | 🛠 In Progress | Agent completes one task at a time with deliberate reasoning          |
-| **Captcha Handling**          | 🔜 Planned    | Detect captchas and pause tasks for remote human solving              |
+| **Captcha Handling**          | ✅ Basic      | Detects captchas once per page and halts tasks                        |
 | **Emotional Engine**          | 🔜 Planned    | Mood and emotion simulation based on web experience                   |
 | **Persona Generator**         | 🔜 Planned    | Create agents with unique backstories, preferences, and voices        |
 
@@ -65,12 +65,23 @@ uv sync
 make dev
 ```
 
+Or install manually:
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r pyproject.toml
+# Playwright requires a one-time browser download
+playwright install
+```
+
+Logs are written to `.temp/logs/app.log`; task memories persist in `.temp/memory/` as JSON.
+
 ---
 
 ## 🌟 Why Contribute?
 
-AutoSurfer isn’t just a dev tool — it’s a movement to bring lifelike AI to the open web.
-By contributing, you’re helping build a new generation of agents that live, work, and evolve online.
+AutoSurfer isn't just a dev tool — it's a movement to bring lifelike AI to the open web.
+By contributing, you're helping build a new generation of agents that live, work, and evolve online.
 
 Whether you're a researcher, hacker, designer, or writer — **we welcome your magic.**
 
@@ -90,3 +101,62 @@ If you believe in agents that _feel human_, share the project on:
 - Reddit
 - Hacker News
 - Your blog ❤️
+
+---
+
+## 🔭 Autonomy Roadmap (Major Upcoming Work)
+
+- **DOM enrichment** – expose more attributes (aria-label, role, alt, size) so the LLM can pick reliable selectors.
+- **Vision-based click fallback** – use lightweight template matching when DOM selectors fail.
+- **Loop/repeat action support** – let the LLM specify repetitive actions succinctly (e.g., comment on first N posts).
+- **Secure credential handling** – inject creds from env/vault after the LLM response so secrets never leave the machine.
+- **Selector robustness** – better handle dynamic class names, SVG icons, and nested components.
+- **Event-driven captcha detection** – hook into page navigation/load events instead of polling each loop.
+
+---
+
+## 🔑 Environment Variables
+
+Set secrets before running:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+```
+
+---
+
+## 🏃 Quick Usage Example
+
+```python
+from autosurfer.agent.browser_agent import AutoSurferAgent
+
+agent = AutoSurferAgent(
+    objective="Go to https://example.com and click 'More information...'",
+    headless=True,
+    enable_memory=True,
+)
+agent.run()
+```
+
+---
+
+## 📂 Example Scripts
+
+| Script                               | Purpose                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------- |
+| `examples/launch_browser.py`         | Opens a Playwright browser with annotation overlay for manual exploration |
+| `examples/test_agent_memory.py`      | Demonstrates the agent with and without task memory                       |
+| `examples/test_browser_agents.py`    | Runs multiple agents in parallel for stress-testing                       |
+| `examples/test_captcha_detection.py` | Shows basic captcha detection workflow                                    |
+
+Run the memory-enabled demo:
+
+```bash
+python -m examples.test_agent_memory enabled
+```
+
+---
+
+## 🪪 License
+
+AutoSurfer is open-source under the MIT License. See `LICENSE` for details.

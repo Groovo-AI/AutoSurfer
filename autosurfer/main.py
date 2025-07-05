@@ -18,8 +18,18 @@ def main():
                 print("Please provide a valid objective.")
                 continue
 
+            # Ask about memory option
+            memory_choice = input(
+                "\n[Bot] Enable agent memory? (y/n, default: n): ").strip().lower()
+            enable_memory = memory_choice in ['y', 'yes']
+
             print(f"Processing objective: {objective}")
-            surfer = AutoSurferAgent(objective=objective)
+            print(f"Memory: {'ENABLED' if enable_memory else 'DISABLED'}")
+
+            surfer = AutoSurferAgent(
+                objective=objective,
+                enable_memory=enable_memory
+            )
             surfer.run()
 
         except KeyboardInterrupt:

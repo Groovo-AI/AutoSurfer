@@ -7,9 +7,12 @@ from autosurfer.agent.browser_agent import AutoSurferAgent
 import os
 import sys
 from pathlib import Path
+from autosurfer.logger import logger
 
 # Add the autosurfer package to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# All outputs now use logger directly
 
 
 def main():
@@ -17,16 +20,16 @@ def main():
 
     # Check if OpenAI API key is set
     if not os.getenv("OPENAI_API_KEY"):
-        print("❌ OPENAI_API_KEY environment variable is required")
-        print("Please set it with: export OPENAI_API_KEY='your-api-key'")
+        logger.info("❌ OPENAI_API_KEY environment variable is required")
+        logger.info("Please set it with: export OPENAI_API_KEY='your-api-key'")
         return
 
     # Simple test objective
     objective = "Go to example.com and verify the page loads successfully"
 
-    print("🚀 Starting AutoSurfer Browser Agent")
-    print(f"Objective: {objective}")
-    print("=" * 60)
+    logger.info("🚀 Starting AutoSurfer Browser Agent")
+    logger.info(f"Objective: {objective}")
+    logger.info("=" * 60)
 
     try:
         # Create and run the agent
@@ -38,12 +41,12 @@ def main():
 
         agent.run()
 
-        print("✅ Browser automation completed successfully!")
+        logger.info("✅ Browser automation completed successfully!")
 
     except KeyboardInterrupt:
-        print("\n⏹️  Automation interrupted by user")
+        logger.info("\n⏹️  Automation interrupted by user")
     except Exception as e:
-        print(f"❌ Automation failed: {e}")
+        logger.error(f"❌ Automation failed: {e}")
 
 
 if __name__ == "__main__":

@@ -11,15 +11,17 @@ import sys
 import time
 from pathlib import Path
 
-# Add the autosurfer package to the path
+# Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Use logger directly in this example script
 
 
 def test_httpbin_form():
     """Test form filling automation on httpbin"""
-    print("\n" + "="*60)
-    print("TESTING HTTPBIN FORM FILLING AUTOMATION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING HTTPBIN FORM FILLING AUTOMATION")
+    logger.info("="*60)
 
     objective = "Go to httpbin.org/forms/post and fill out the form with name 'John Doe', age '30', and submit it"
 
@@ -27,16 +29,16 @@ def test_httpbin_form():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ HTTPBin form test completed successfully!")
+        logger.info("✅ HTTPBin form test completed successfully!")
     except Exception as e:
-        print(f"❌ HTTPBin form test failed: {e}")
+        logger.error(f"❌ HTTPBin form test failed: {e}")
 
 
 def test_google_search():
     """Test Google search automation"""
-    print("\n" + "="*60)
-    print("TESTING GOOGLE SEARCH AUTOMATION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING GOOGLE SEARCH AUTOMATION")
+    logger.info("="*60)
 
     objective = "Go to google.com and search for 'Python automation'"
 
@@ -44,16 +46,16 @@ def test_google_search():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ Google search test completed successfully!")
+        logger.info("✅ Google search test completed successfully!")
     except Exception as e:
-        print(f"❌ Google search test failed: {e}")
+        logger.error(f"❌ Google search test failed: {e}")
 
 
 def test_wikipedia_navigation():
     """Test Wikipedia navigation automation"""
-    print("\n" + "="*60)
-    print("TESTING WIKIPEDIA NAVIGATION AUTOMATION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING WIKIPEDIA NAVIGATION AUTOMATION")
+    logger.info("="*60)
 
     objective = "Go to wikipedia.org and search for 'Python programming language'"
 
@@ -61,16 +63,16 @@ def test_wikipedia_navigation():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ Wikipedia navigation test completed successfully!")
+        logger.info("✅ Wikipedia navigation test completed successfully!")
     except Exception as e:
-        print(f"❌ Wikipedia navigation test failed: {e}")
+        logger.error(f"❌ Wikipedia navigation test failed: {e}")
 
 
 def test_simple_navigation():
     """Test simple navigation automation"""
-    print("\n" + "="*60)
-    print("TESTING SIMPLE NAVIGATION AUTOMATION")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING SIMPLE NAVIGATION AUTOMATION")
+    logger.info("="*60)
 
     objective = "Go to example.com and verify the page loads"
 
@@ -78,16 +80,16 @@ def test_simple_navigation():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ Simple navigation test completed successfully!")
+        logger.info("✅ Simple navigation test completed successfully!")
     except Exception as e:
-        print(f"❌ Simple navigation test failed: {e}")
+        logger.error(f"❌ Simple navigation test failed: {e}")
 
 
 def test_website_summarization():
     """Test website summarization with scrolling"""
-    print("\n" + "="*60)
-    print("TESTING WEBSITE SUMMARIZATION WITH SCROLLING")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TESTING WEBSITE SUMMARIZATION WITH SCROLLING")
+    logger.info("="*60)
 
     objective = "Go to https://octifytechnologies.com/ and summarize their website by scrolling through the page"
 
@@ -95,20 +97,21 @@ def test_website_summarization():
         agent = AutoSurferAgent(objective=objective,
                                 headless=False, max_retries=3)
         agent.run()
-        print("✅ Website summarization test completed successfully!")
+        logger.info("✅ Website summarization test completed successfully!")
     except Exception as e:
-        print(f"❌ Website summarization test failed: {e}")
+        logger.error(f"❌ Website summarization test failed: {e}")
 
 
 def main():
     """Run all tests"""
-    print("🚀 AutoSurfer Enhanced Accuracy Test Suite")
-    print("This demonstrates the improvements made for better accuracy")
+    logger.info("🚀 AutoSurfer Enhanced Accuracy Test Suite")
+    logger.info("This demonstrates the improvements made for better accuracy")
 
     # Check if OpenAI API key is set
     if not os.getenv("OPENAI_API_KEY"):
-        print("❌ OPENAI_API_KEY environment variable is required")
-        print("Please set it with: export OPENAI_API_KEY='your-api-key'")
+        logger.error("❌ OPENAI_API_KEY environment variable is required")
+        logger.error(
+            "Please set it with: export OPENAI_API_KEY='your-api-key'")
         return
 
     # Run tests
@@ -125,14 +128,14 @@ def main():
             test()
             time.sleep(3)  # Brief pause between tests
         except KeyboardInterrupt:
-            print("\n⏹️  Test interrupted by user")
+            logger.info("\n⏹️  Test interrupted by user")
             break
         except Exception as e:
-            print(f"❌ Test failed with error: {e}")
+            logger.error(f"❌ Test failed with error: {e}")
 
-    print("\n" + "="*60)
-    print("TEST SUITE COMPLETED")
-    print("="*60)
+    logger.info("\n" + "="*60)
+    logger.info("TEST SUITE COMPLETED")
+    logger.info("="*60)
 
 
 if __name__ == "__main__":

@@ -81,8 +81,6 @@ class AutoSurferAgent:
                     page_context=page_context
                 )
 
-                logger.info(f"[Agent Plan] {plan}")
-
                 # Execute action with retry logic
                 execution_success = False
                 error_message = None
@@ -93,6 +91,15 @@ class AutoSurferAgent:
                         consecutive_failures = 0
                         logger.info(
                             f"✅ Action executed successfully on attempt {attempt + 1}")
+
+                        # If the plan started with a navigation, log new URL/title
+                        if any(it.action.type == "goto" for it in plan.actions):
+                            new_url = self.browser_session.page.url
+                            new_title = self.browser_session.page.title()
+                            logger.info(f"📍 URL after navigation: {new_url}")
+                            logger.info(
+                                f"📄 Title after navigation: {new_title}")
+
                         break
                     except Exception as e:
                         error_message = str(e)
@@ -132,6 +139,19 @@ class AutoSurferAgent:
                 # Add to memory if enabled
                 if self.memory:
                     self.memory.add_entry(memory_entry)
+
+                    # Build concise memory snapshot
+                    snapshot = self.memory.get_progress_context()
+                    extra = []
+                    if self.memory.accomplishments:
+                        extra.append(
+                            f"Accomplishments: {len(self.memory.accomplishments)}")
+                    if self.memory.failures:
+                        extra.append(f"Failures: {len(self.memory.failures)}")
+                    if extra:
+                        snapshot += "\n" + " | ".join(extra)
+
+                    logger.info(f"[MEM] {snapshot}")
                 else:
                     action_count += 1
 

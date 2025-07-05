@@ -15,6 +15,10 @@ class CaptchaInfo:
 class CaptchaHandler:
     def __init__(self, page: Page):
         self.page = page
+        # Cache for recent captcha checks
+        self._last_checked_url: str = ""
+        self._last_checked_result: Optional[CaptchaInfo] = None
+        # Note: we no longer use a time-based cache; we only re-scan when the URL changes.
 
         # Common captcha selectors for detection only
         self.captcha_selectors = {
@@ -90,8 +94,20 @@ class CaptchaHandler:
         return None
 
     def handle_captcha_detection(self) -> bool:
-        """Handle captcha detection - just detect and exit"""
+        """Return False if captcha found; otherwise True. Skip repeated scans on same URL within 10 s."""
+        current_url = self.page.url
+
+        # Skip if we've already scanned this URL in the current session
+        if current_url == self._last_checked_url:
+            logger.debug(
+                "Skipping captcha scan: URL unchanged since last check")
+            return self._last_checked_result is None
+
+        # URL changed → perform a fresh scan and update cache metadata
+        self._last_checked_url = current_url
+
         captcha_info = self.detect_captcha()
+        self._last_checked_result = captcha_info
 
         if captcha_info:
             logger.error(f"🔒 CAPTCHA DETECTED: {captcha_info.type}")
@@ -101,3 +117,7 @@ class CaptchaHandler:
             return False
 
         return True
+
+    def invalidate_cache(self):
+        """Clear the cached URL so the next call will perform a fresh scan."""
+        self._last_checked_url = ""

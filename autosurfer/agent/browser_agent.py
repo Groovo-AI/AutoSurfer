@@ -1,4 +1,3 @@
-# autosurfer/agent/browser_agent.py
 from autosurfer.logger import logger
 from autosurfer.agent.brain.task_planner import next_action
 from autosurfer.agent.brain.memory import AgentMemory, MemoryEntry
@@ -117,6 +116,10 @@ class AutoSurferAgent:
                             consecutive_failures += 1
                             logger.error(
                                 f"❌ All retry attempts failed for action: {e}")
+
+                # If the action we just executed could spawn a captcha overlay, invalidate the captcha cache so the next loop re-checks.
+                if execution_success and any(it.action.type in {"click", "fill", "press"} for it in plan.actions):
+                    captcha_handler.invalidate_cache()
 
                 # If captcha was detected, break out of the loop
                 if not execution_success and not captcha_handler.handle_captcha_detection():

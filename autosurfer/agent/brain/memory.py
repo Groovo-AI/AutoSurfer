@@ -2,6 +2,8 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
+from pathlib import Path
+from autosurfer.logger import logger
 
 
 @dataclass
@@ -47,6 +49,8 @@ class AgentMemory:
         else:
             self.failures.append(
                 f"{entry.action_type}: {entry.error_message or 'Unknown error'}")
+            # Update progress for a failed action as well
+            self.current_progress = f"Failed {entry.action_type}: {entry.error_message or 'Unknown error'}"
 
     def get_recent_entries(self, count: int = 5) -> List[MemoryEntry]:
         """Get the most recent memory entries"""
@@ -120,3 +124,38 @@ class AgentMemory:
             return True
 
         return False
+
+    def _serialize(self) -> Dict[str, Any]:
+        """Return a JSON-serialisable dict representing the full memory state."""
+        return {
+            "objective": self.objective,
+            "start_time": self.start_time,
+            "entries": [entry.__dict__ for entry in self.entries],
+            "accomplishments": self.accomplishments,
+            "failures": self.failures,
+            "current_progress": self.current_progress,
+        }
+
+    def save_to_file(self, directory: Optional[Path] = None) -> Path:
+        """Persist the entire memory to a flat JSON file.
+
+        The file is placed under ``.temp/memory/`` at the project root unless a
+        custom ``directory`` is supplied. It is named with the unix timestamp
+        recorded at ``start_time`` to keep each run unique.
+        """
+        # Determine target directory
+        if directory is None:
+            # project root is three levels up from this file (autosurfer/agent/brain/)
+            root_dir = Path(__file__).resolve().parents[3]
+            directory = root_dir / ".temp" / "memory"
+        directory.mkdir(parents=True, exist_ok=True)
+
+        # Filename based on the start timestamp for uniqueness
+        file_path = directory / f"{int(self.start_time)}.json"
+
+        # Write JSON
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(self._serialize(), f, ensure_ascii=False, indent=2)
+
+        logger.info(f"🧠 Memory saved to {file_path}")
+        return file_path

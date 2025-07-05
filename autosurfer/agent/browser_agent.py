@@ -193,6 +193,10 @@ class AutoSurferAgent:
             logger.error(f"Agent execution failed: {e}")
             raise
         finally:
+            # Persist memory (if enabled) before closing the browser
+            if self.memory:
+                self.memory.save_to_file()
+
             logger.info("Agent execution finished!")
             self.browser_session.close()
 

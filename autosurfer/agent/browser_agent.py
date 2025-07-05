@@ -8,9 +8,10 @@ from typing import List, Dict, Any
 
 
 class AutoSurferAgent:
-    def __init__(self, objective: str, headless: bool = False):
+    def __init__(self, objective: str, headless: bool = False, max_retries: int = 3):
         self.objective = objective
         self.headless = headless
+        self.max_retries = max_retries
         self.browser_settings = BrowserSettings(
             stealth_mode=True,
             headless=headless
@@ -28,6 +29,9 @@ class AutoSurferAgent:
         )
 
         try:
+            retry_count = 0
+            consecutive_failures = 0
+
             while True:
                 # Get current page state
                 current_url = self.browser_session.page.url
@@ -40,7 +44,9 @@ class AutoSurferAgent:
                 page_context = {
                     "url": current_url,
                     "title": page_title,
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
+                    "retry_count": retry_count,
+                    "consecutive_failures": consecutive_failures
                 }
 
                 # Plan next action
@@ -53,18 +59,29 @@ class AutoSurferAgent:
 
                 logger.info(f"[Agent Plan] {plan}")
 
-                # Execute action
-                try:
-                    executor.execute(plan)
-                except Exception as e:
-                    logger.error(f"Failed to execute action: {e}")
-                    break
+                # Execute action with retry logic
+                execution_success = False
+                for attempt in range(self.max_retries):
+                    try:
+                        executor.execute(plan)
+                        execution_success = True
+                        consecutive_failures = 0
+                        break
+                    except Exception as e:
+                        logger.warn(f"Attempt {attempt + 1} failed: {e}")
+                        if attempt < self.max_retries - 1:
+                            time.sleep(1)  # Brief pause before retry
+                        else:
+                            consecutive_failures += 1
+                            logger.error(
+                                f"All retry attempts failed for action: {e}")
 
                 # Add to memory
                 execution_result = {
                     "plan": plan,
-                    "success": True,
-                    "page_context": page_context
+                    "success": execution_success,
+                    "page_context": page_context,
+                    "attempts": attempt + 1 if not execution_success else 1
                 }
                 memory.append(execution_result)
 
@@ -72,6 +89,20 @@ class AutoSurferAgent:
                 if any(item.action.type == "done" for item in plan.actions):
                     logger.info("✅ Task completed by agent.")
                     break
+
+                # Check for too many consecutive failures
+                if consecutive_failures >= 3:
+                    logger.error(
+                        "Too many consecutive failures. Stopping agent.")
+                    break
+
+                # Check for infinite loops (same action repeated too many times)
+                if len(memory) > 10:
+                    recent_actions = [m["plan"] for m in memory[-5:]]
+                    if len(set(str(action) for action in recent_actions)) <= 2:
+                        logger.warn(
+                            "Detected potential infinite loop. Stopping agent.")
+                        break
 
                 # Simple delay
                 time.sleep(2)

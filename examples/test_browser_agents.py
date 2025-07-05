@@ -15,20 +15,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def test_instagram_login():
-    """Test Instagram login automation"""
+def test_httpbin_form():
+    """Test form filling automation on httpbin"""
     print("\n" + "="*60)
-    print("TESTING INSTAGRAM LOGIN AUTOMATION")
+    print("TESTING HTTPBIN FORM FILLING AUTOMATION")
     print("="*60)
 
-    objective = "Go to instagram.com and login to my account with username 'testuser' and password 'testpass123'"
+    objective = "Go to httpbin.org/forms/post and fill out the form with name 'John Doe', age '30', and submit it"
 
     try:
-        agent = AutoSurferAgent(objective=objective, headless=False)
+        agent = AutoSurferAgent(objective=objective,
+                                headless=False, max_retries=3)
         agent.run()
-        print("✅ Instagram login test completed successfully!")
+        print("✅ HTTPBin form test completed successfully!")
     except Exception as e:
-        print(f"❌ Instagram login test failed: {e}")
+        print(f"❌ HTTPBin form test failed: {e}")
 
 
 def test_google_search():
@@ -40,49 +41,52 @@ def test_google_search():
     objective = "Go to google.com and search for 'Python automation'"
 
     try:
-        agent = AutoSurferAgent(objective=objective, headless=False)
+        agent = AutoSurferAgent(objective=objective,
+                                headless=False, max_retries=3)
         agent.run()
         print("✅ Google search test completed successfully!")
     except Exception as e:
         print(f"❌ Google search test failed: {e}")
 
 
-def test_form_filling():
-    """Test form filling automation"""
+def test_wikipedia_navigation():
+    """Test Wikipedia navigation automation"""
     print("\n" + "="*60)
-    print("TESTING FORM FILLING AUTOMATION")
+    print("TESTING WIKIPEDIA NAVIGATION AUTOMATION")
     print("="*60)
 
-    objective = "Go to httpbin.org/forms/post and fill out the form with name 'John Doe', age '30', and submit it"
+    objective = "Go to wikipedia.org and search for 'Python programming language'"
 
     try:
-        agent = AutoSurferAgent(objective=objective, headless=False)
+        agent = AutoSurferAgent(objective=objective,
+                                headless=False, max_retries=3)
         agent.run()
-        print("✅ Form filling test completed successfully!")
+        print("✅ Wikipedia navigation test completed successfully!")
     except Exception as e:
-        print(f"❌ Form filling test failed: {e}")
+        print(f"❌ Wikipedia navigation test failed: {e}")
 
 
-def test_navigation():
-    """Test navigation automation"""
+def test_simple_navigation():
+    """Test simple navigation automation"""
     print("\n" + "="*60)
-    print("TESTING NAVIGATION AUTOMATION")
+    print("TESTING SIMPLE NAVIGATION AUTOMATION")
     print("="*60)
 
-    objective = "Go to github.com and navigate to the trending repositories page"
+    objective = "Go to example.com and verify the page loads"
 
     try:
-        agent = AutoSurferAgent(objective=objective, headless=False)
+        agent = AutoSurferAgent(objective=objective,
+                                headless=False, max_retries=3)
         agent.run()
-        print("✅ Navigation test completed successfully!")
+        print("✅ Simple navigation test completed successfully!")
     except Exception as e:
-        print(f"❌ Navigation test failed: {e}")
+        print(f"❌ Simple navigation test failed: {e}")
 
 
 def main():
     """Run all tests"""
     print("🚀 AutoSurfer Enhanced Accuracy Test Suite")
-    print("This demonstrates the improvements made for 100% accuracy")
+    print("This demonstrates the improvements made for better accuracy")
 
     # Check if OpenAI API key is set
     if not os.getenv("OPENAI_API_KEY"):
@@ -92,16 +96,16 @@ def main():
 
     # Run tests
     tests = [
+        test_simple_navigation,
+        test_httpbin_form,
+        test_wikipedia_navigation,
         test_google_search,
-        test_form_filling,
-        test_navigation,
-        # test_instagram_login,  # Uncomment to test Instagram (requires credentials)
     ]
 
     for test in tests:
         try:
             test()
-            time.sleep(2)  # Brief pause between tests
+            time.sleep(3)  # Brief pause between tests
         except KeyboardInterrupt:
             print("\n⏹️  Test interrupted by user")
             break

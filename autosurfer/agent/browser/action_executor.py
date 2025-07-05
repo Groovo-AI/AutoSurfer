@@ -1,6 +1,6 @@
 from autosurfer.logger import logger
 from autosurfer.llm.response_schema.browser_actions import NextActions
-from playwright.sync_api import Page, Browser
+from playwright.sync_api import Page, Browser, TimeoutError
 import time
 from typing import Optional
 
@@ -24,6 +24,7 @@ class BrowserActionExecutor:
             logger.info(f"[Agent Thought] {item.thought}")
             fn = self._dispatch.get(item.action.type)
             if not fn:
+                logger.warn(f"Unknown action type: {item.action.type}")
                 continue
 
             try:
@@ -75,35 +76,110 @@ class BrowserActionExecutor:
 
     def _goto(self, url):
         logger.info(f"Navigating to: {url}")
-        self.page.goto(url, wait_until="networkidle", timeout=30000)
+        try:
+            self.page.goto(url, wait_until="networkidle", timeout=30000)
+            # Wait a bit for any dynamic content to load
+            time.sleep(1)
+        except TimeoutError:
+            logger.warn(f"Navigation timeout for {url}, but continuing...")
+            # Try with a shorter timeout
+            self.page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
     def _click(self, selector: str):
-        # Simple selector handling - let Playwright handle the rest
+        logger.info(f"Clicking: {selector}")
+
+        # Try multiple selector strategies
+        selectors_to_try = []
+
         if selector.startswith("/"):
-            self.page.click(f"xpath={selector}")
+            selectors_to_try.append(f"xpath={selector}")
+        elif selector.startswith("text="):
+            selectors_to_try.append(selector)
+        elif selector.startswith(":has-text("):
+            selectors_to_try.append(selector)
         else:
-            self.page.click(selector)
+            # Try the original selector first
+            selectors_to_try.append(selector)
+
+            # If it's a simple text, try text selector
+            if not any(char in selector for char in ["#", ".", "[", "="]):
+                selectors_to_try.append(f'text="{selector}"')
+                selectors_to_try.append(f':has-text("{selector}")')
+
+        for sel in selectors_to_try:
+            try:
+                # Wait for element to be visible and clickable
+                element = self.page.wait_for_selector(
+                    sel, timeout=5000, state="visible")
+                if element:
+                    element.click()
+                    return
+            except Exception as e:
+                logger.debug(f"Selector {sel} failed: {e}")
+                continue
+
+        # If all selectors fail, try to find by text content
+        try:
+            self.page.click(f'text="{selector}"')
+        except:
+            raise Exception(
+                f"Could not click element with selector: {selector}")
 
     def _fill(self, selector: str, value: str):
+        logger.info(f"Filling {selector} with: {value}")
+
+        # Try multiple selector strategies
+        selectors_to_try = []
+
         if selector.startswith("/"):
-            self.page.fill(f"xpath={selector}", value)
+            selectors_to_try.append(f"xpath={selector}")
         else:
-            self.page.fill(selector, value)
+            selectors_to_try.append(selector)
+
+            # If it's a simple text, try to find input by placeholder or label
+            if not any(char in selector for char in ["#", ".", "[", "="]):
+                selectors_to_try.append(f'input[placeholder*="{selector}"]')
+                selectors_to_try.append(f'input[name*="{selector}"]')
+
+        for sel in selectors_to_try:
+            try:
+                element = self.page.wait_for_selector(
+                    sel, timeout=5000, state="visible")
+                if element:
+                    element.fill(value)
+                    return
+            except Exception as e:
+                logger.debug(f"Fill selector {sel} failed: {e}")
+                continue
+
+        raise Exception(f"Could not fill element with selector: {selector}")
 
     def _press(self, key: str):
+        logger.info(f"Pressing key: {key}")
         self.page.keyboard.press(key)
 
     def _wait(self, seconds: float):
+        logger.info(f"Waiting for {seconds} seconds")
         time.sleep(seconds)
 
     def _scroll(self, direction: str, selector: Optional[str] = None):
         if selector:
-            if selector.startswith("/"):
-                self.page.locator(
-                    f"xpath={selector}").scroll_into_view_if_needed()
-            else:
-                self.page.locator(selector).scroll_into_view_if_needed()
+            logger.info(f"Scrolling to element: {selector}")
+            try:
+                if selector.startswith("/"):
+                    self.page.locator(
+                        f"xpath={selector}").scroll_into_view_if_needed()
+                else:
+                    self.page.locator(selector).scroll_into_view_if_needed()
+            except Exception as e:
+                logger.warn(f"Could not scroll to {selector}: {e}")
+                # Fallback to general scroll
+                if direction == "down":
+                    self.page.evaluate("window.scrollBy(0, 500)")
+                elif direction == "up":
+                    self.page.evaluate("window.scrollBy(0, -500)")
         else:
+            logger.info(f"Scrolling {direction}")
             if direction == "down":
                 self.page.evaluate("window.scrollBy(0, 500)")
             elif direction == "up":

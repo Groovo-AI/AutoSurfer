@@ -1,5 +1,9 @@
 import platform
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class Config:
@@ -15,6 +19,9 @@ class Config:
         OS = "unknown"
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    
+    # Google AI configuration
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
     # BrowserBase configuration
     BROWSERBASE_API_KEY = os.getenv("BROWSERBASE_API_KEY")

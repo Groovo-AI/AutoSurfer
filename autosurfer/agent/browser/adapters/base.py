@@ -34,19 +34,10 @@ class BaseBrowserAdapter:
         js_path = Path(__file__).parent.parent / "dom" / "annotateDom.js"
         self.js_code = js_path.read_text() if js_path.exists() else ""
 
-    def setup_browser(self):
-        """Setup browser, context, and page with common settings"""
-        self.context = self.browser.new_context(
-            viewport=None,
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-
+    def _apply_settings_to_page(self):
+        """Apply common settings to existing page/context"""
         if self.js_code:
             self.context.add_init_script(self.js_code)
-
-        self.page = self.context.new_page()
-        self.page.set_default_timeout(30000)
-        self.page.set_default_navigation_timeout(30000)
 
         if self.settings.stealth_mode:
             try:
@@ -55,6 +46,19 @@ class BaseBrowserAdapter:
             except ImportError:
                 logger.warn(
                     "playwright-stealth not installed, stealth mode disabled")
+
+    def setup_browser(self):
+        """Setup browser, context, and page with common settings"""
+        self.context = self.browser.new_context(
+            viewport=None,
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+
+        self.page = self.context.new_page()
+        self.page.set_default_timeout(30000)
+        self.page.set_default_navigation_timeout(30000)
+
+        self._apply_settings_to_page()
 
     def close(self):
         """Close browser resources"""

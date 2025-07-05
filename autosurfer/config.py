@@ -7,7 +7,7 @@ class Config:
 
     if OS_PLATFORM == "Darwin":
         OS = "mac"
-    elif OS_PLATFORM == "Linux":
+    elif OS_PLATFORM == "linux":
         OS = "linux"
     elif OS_PLATFORM == "Windows":
         OS = "windows"
@@ -18,6 +18,4 @@ class Config:
 
     # BrowserBase configuration
     BROWSERBASE_API_KEY = os.getenv("BROWSERBASE_API_KEY")
-    BROWSERBASE_PROJECT_TOKEN = os.getenv("BROWSERBASE_PROJECT_TOKEN")
-    # "playwright" or "browserbase"
-    BROWSER_PROVIDER = os.getenv("BROWSER_PROVIDER", "playwright")
+    BROWSERBASE_PROJECT_ID = os.getenv("BROWSERBASE_PROJECT_ID")

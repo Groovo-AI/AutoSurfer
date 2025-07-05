@@ -25,7 +25,8 @@ It's not just a bot. It's a digital entity.
 
 | Feature                       | Status        | Description                                                           |
 | ----------------------------- | ------------- | --------------------------------------------------------------------- |
-| **Browser Agent**             | ✅ Done       | Playwright-powered browser controlled by Python agent                 |
+| **Multi-Browser Support**     | ✅ Done       | Choose between Playwright (local) and BrowserBase (cloud) browsers    |
+| **Browser Adapters**          | ✅ Done       | Clean dependency injection pattern for browser providers              |
 | **DOM Annotation**            | ✅ Done       | Highlights and identifies all interactive UI elements                 |
 | **LLM-Driven Thinking**       | 🛠 In Progress | Agents use LLMs to plan next steps based on current and prior context |
 | **Task Memory**               | ✅ Done       | Agent tracks task history and remembers the overall objective         |
@@ -39,8 +40,9 @@ It's not just a bot. It's a digital entity.
 ## 📦 Tech Stack
 
 - **Python 3.11+** — Core runtime
-- **Playwright** — Headless/full-browser automation
-- **OpenAI / Vision Models** (planned) — For reasoning and perception
+- **Playwright** — Local browser automation
+- **BrowserBase** — Cloud browser automation with session replay
+- **OpenAI** — For reasoning and task planning
 - **JavaScript** — For DOM annotation and interaction overlay
 
 ---
@@ -69,7 +71,7 @@ Or install manually:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r pyproject.toml
+pip install -e .
 # Playwright requires a one-time browser download
 playwright install
 ```
@@ -123,12 +125,9 @@ Set secrets before running:
 # Required for OpenAI integration
 export OPENAI_API_KEY="sk-..."
 
-# Optional: Browser provider selection (default: "playwright")
-export BROWSER_PROVIDER="playwright"  # or "browserbase"
-
-# Required for BrowserBase integration
+# Required for BrowserBase integration (only if using BrowserBase)
 export BROWSERBASE_API_KEY="your-browserbase-api-key"
-export BROWSERBASE_PROJECT_TOKEN="your-browserbase-project-token"
+export BROWSERBASE_PROJECT_ID="your-browserbase-project-id"
 ```
 
 ---
@@ -139,9 +138,14 @@ export BROWSERBASE_PROJECT_TOKEN="your-browserbase-project-token"
 from autosurfer.agent.browser_agent import AutoSurferAgent
 from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
 
-# Create browser session first
+# Choose your browser provider
 settings = BrowserSettings(headless=True, stealth_mode=True)
+
+# For Playwright (local) - no additional setup required
 browser_session = create_browser_adapter("playwright", settings)
+
+# For BrowserBase (cloud) - requires API credentials
+browser_session = create_browser_adapter("browserbase", settings)
 
 # Pass browser session to agent
 agent = AutoSurferAgent(
@@ -150,17 +154,23 @@ agent = AutoSurferAgent(
     enable_memory=True,
 )
 agent.run()
-
-# Use BrowserBase
-settings = BrowserSettings(headless=True)
-browser_session = create_browser_adapter("browserbase", settings)
-agent = AutoSurferAgent(
-    objective="Go to https://example.com and click 'More information...'",
-    browser_session=browser_session,
-    enable_memory=True,
-)
-agent.run()
 ```
+
+---
+
+## 🖥️ Command Line Interface
+
+```bash
+# Interactive mode - choose browser provider when prompted
+python runner.py
+
+```
+
+The CLI will prompt you to:
+
+1. Enter your objective
+2. Enable/disable agent memory
+3. Choose between Playwright and BrowserBase
 
 ---
 
@@ -184,6 +194,20 @@ Test browser adapters:
 ```bash
 python -m examples.test_launch_browsers
 ```
+
+---
+
+## 🏗️ Architecture
+
+AutoSurfer uses a clean dependency injection pattern:
+
+- **BrowserAdapter Protocol** - Abstract interface for browser operations
+- **BaseBrowserAdapter** - Common setup and utilities (JS injection, stealth mode)
+- **PlaywrightAdapter** - Local browser automation
+- **BrowserBaseAdapter** - Cloud browser automation with session replay
+- **AutoSurferAgent** - Main agent that orchestrates browser actions
+
+Each adapter handles its specific browser setup while sharing common functionality through the base class.
 
 ---
 

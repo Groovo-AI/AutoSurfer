@@ -21,9 +21,16 @@ class BrowserManager:
     def __init__(self, settings: BrowserSettings):
         self.settings = settings
         self.playwright: Playwright = sync_playwright().start()
+
+        # Fix args handling
+        browser_args = ["--start-maximized"]
+        if settings.args:
+            browser_args.extend(settings.args)
+
         self.browser: Browser = self.playwright.chromium.launch(
-            headless=settings.headless, args=["--start-maximized"].append(self.settings.args))
+            headless=settings.headless, args=browser_args)
         self.context = self.browser.new_context(viewport=None)
+
         if JS_CODE:
             self.context.add_init_script(JS_CODE)
         self.page = self.context.new_page()
@@ -33,9 +40,12 @@ class BrowserManager:
         logger.info(f'[Browser Settings]: {self.settings}')
 
     def close(self):
-        if self.context:
-            self.context.close()
-        if self.browser:
-            self.browser.close()
-        if self.playwright:
-            self.playwright.stop()
+        try:
+            if self.context:
+                self.context.close()
+            if self.browser:
+                self.browser.close()
+            if self.playwright:
+                self.playwright.stop()
+        except Exception as e:
+            logger.error(f"Error closing browser: {e}")

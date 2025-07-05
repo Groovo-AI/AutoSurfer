@@ -36,6 +36,17 @@ class ScrollAction(BaseModel):
     selector: Optional[str] = None
 
 
+class HoverAction(BaseModel):
+    type: Literal["hover"]
+    selector: str
+
+
+class SelectAction(BaseModel):
+    type: Literal["select"]
+    selector: str
+    value: str
+
+
 class DoneAction(BaseModel):
     type: Literal["done"]
     summary: str
@@ -48,14 +59,16 @@ Action = Union[
     PressAction,
     WaitAction,
     ScrollAction,
+    HoverAction,
+    SelectAction,
     DoneAction,
 ]
 
 
 class ActionItem(BaseModel):
-    thought: str
+    thought: str = Field(..., description="Brief reasoning for this action")
     action: Action
 
 
 class NextActions(BaseModel):
-    actions: List[ActionItem] = Field(..., min_items=1, max_items=2)
+    actions: List[ActionItem]

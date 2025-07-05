@@ -4,6 +4,7 @@ from autosurfer.agent.brain.task_planner import next_action
 from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
 from autosurfer.agent.browser.action_executor import BrowserActionExecutor
 import time
+from typing import List, Dict, Any
 
 
 class AutoSurferAgent:
@@ -12,7 +13,7 @@ class AutoSurferAgent:
         self.headless = headless
         self.browser_settings = BrowserSettings(
             stealth_mode=True,
-            headless=False
+            headless=headless
         )
         self.browser_session = BrowserManager(
             settings=self.browser_settings
@@ -23,20 +24,61 @@ class AutoSurferAgent:
         memory = []
         executor = BrowserActionExecutor(
             page=self.browser_session.page,
-            browser_session=self.browser_session
+            browser_session=self.browser_session.browser
         )
+
         try:
             while True:
-                ui_elements = executor.annotate_ui()
-                plan = next_action(objective=self.objective,
-                                   ui_elements=ui_elements, memory=memory)
-                logger.info(f"[Agent Plan] {plan}")
-                executor.execute(plan)
-                memory.append(plan)
-                time.sleep(10)
+                # Get current page state
+                current_url = self.browser_session.page.url
+                page_title = self.browser_session.page.title
 
+                # Get UI elements
+                ui_elements = executor.annotate_ui()
+
+                # Add page context to memory
+                page_context = {
+                    "url": current_url,
+                    "title": page_title,
+                    "timestamp": time.time()
+                }
+
+                # Plan next action
+                plan = next_action(
+                    objective=self.objective,
+                    ui_elements=ui_elements,
+                    memory=memory,
+                    page_context=page_context
+                )
+
+                logger.info(f"[Agent Plan] {plan}")
+
+                # Execute action
+                try:
+                    executor.execute(plan)
+                except Exception as e:
+                    logger.error(f"Failed to execute action: {e}")
+                    break
+
+                # Add to memory
+                execution_result = {
+                    "plan": plan,
+                    "success": True,
+                    "page_context": page_context
+                }
+                memory.append(execution_result)
+
+                # Check if task is complete
                 if any(item.action.type == "done" for item in plan.actions):
                     logger.info("✅ Task completed by agent.")
                     break
+
+                # Simple delay
+                time.sleep(2)
+
+        except Exception as e:
+            logger.error(f"Agent execution failed: {e}")
+            raise
         finally:
-            logger.info("Agent exectution finished!")
+            logger.info("Agent execution finished!")
+            self.browser_session.close()

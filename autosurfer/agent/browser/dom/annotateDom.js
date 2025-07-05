@@ -32,7 +32,7 @@
     return style;
   }
 
-  // --- XPATH ---
+  // --- ENHANCED XPATH ---
   const xpathCache = new WeakMap();
   function getXPath(el) {
     if (xpathCache.has(el)) return xpathCache.get(el);
@@ -51,6 +51,45 @@
     const path = "/body/" + segs.join("/");
     xpathCache.set(el, path);
     return path;
+  }
+
+  // --- ENHANCED ELEMENT ANALYSIS ---
+  function getElementDetails(el) {
+    const details = {
+      tag: el.tagName.toLowerCase(),
+      id: el.id || null,
+      className: el.className || null,
+      name: el.name || null,
+      type: el.type || null,
+      value: el.value || null,
+      placeholder: el.placeholder || null,
+      title: el.title || null,
+      alt: el.alt || null,
+      href: el.href || null,
+      role: el.getAttribute("role") || null,
+      "data-testid": el.getAttribute("data-testid") || null,
+      "data-test": el.getAttribute("data-test") || null,
+      "aria-label": el.getAttribute("aria-label") || null,
+      "aria-labelledby": el.getAttribute("aria-labelledby") || null,
+      text: (el.innerText || "").trim().slice(0, 100),
+      visible: true,
+      enabled: !el.disabled,
+      required: el.required || false,
+      checked: el.checked || false,
+      selected: el.selected || false,
+    };
+
+    // Check visibility
+    const style = getCachedStyle(el);
+    if (
+      style.visibility === "hidden" ||
+      style.display === "none" ||
+      style.opacity === "0"
+    ) {
+      details.visible = false;
+    }
+
+    return details;
   }
 
   // --- CONTAINER & CLEANUP ---
@@ -99,26 +138,74 @@
 
   function isInteractive(el, style) {
     const tag = el.tagName.toLowerCase();
+
+    // Check for pointer cursor
     if (style.cursor === "pointer") return true;
-    if (
-      [
-        "a",
-        "button",
-        "input",
-        "select",
-        "textarea",
-        "summary",
-        "details",
-        "label",
-      ].includes(tag)
-    ) {
+
+    // Check for interactive tags
+    const interactiveTags = [
+      "a",
+      "button",
+      "input",
+      "select",
+      "textarea",
+      "summary",
+      "details",
+      "label",
+      "option",
+      "optgroup",
+    ];
+
+    if (interactiveTags.includes(tag)) {
       if (el.disabled || style.pointerEvents === "none") return false;
       return true;
     }
-    return el.hasAttribute("onclick") || el.getAttribute("role");
+
+    // Check for event handlers
+    if (el.hasAttribute("onclick") || el.getAttribute("role")) return true;
+
+    // Check for clickable elements with specific classes
+    const clickableClasses = ["btn", "button", "clickable", "link", "nav-link"];
+    if (el.className && typeof el.className === "string") {
+      if (clickableClasses.some((cls) => el.className.includes(cls)))
+        return true;
+    }
+
+    return false;
   }
 
-  function drawBox(container, r, idx) {
+  function getPriorityScore(el, details) {
+    let score = 0;
+
+    // Higher priority for elements with specific attributes
+    if (details.id) score += 100;
+    if (details["data-testid"]) score += 90;
+    if (details["data-test"]) score += 85;
+    if (details["aria-label"]) score += 80;
+    if (details.name) score += 70;
+    if (details.role) score += 60;
+
+    // Priority for form elements
+    if (details.tag === "input" && details.type) {
+      if (
+        details.type === "text" ||
+        details.type === "email" ||
+        details.type === "password"
+      )
+        score += 50;
+      if (details.type === "submit" || details.type === "button") score += 40;
+    }
+
+    // Priority for buttons and links
+    if (details.tag === "button" || details.tag === "a") score += 30;
+
+    // Priority for visible text
+    if (details.text && details.text.length > 0) score += 20;
+
+    return score;
+  }
+
+  function drawBox(container, r, idx, priority) {
     const colors = [
       "#ff5f5f",
       "#58d365",
@@ -150,7 +237,7 @@
       padding: "0 2px",
       borderRadius: "2px",
     });
-    label.textContent = idx;
+    label.textContent = `${idx}(${priority})`;
     box.appendChild(label);
     container.appendChild(box);
     window._highlightCleanup.push(() => box.remove());
@@ -164,6 +251,8 @@
     const container = cfg.highlight ? initContainer() : null;
     let idx = 0;
 
+    // Collect all elements first
+    const elements = [];
     document.querySelectorAll("*").forEach((el) => {
       const style = getCachedStyle(el);
       if (style.visibility === "hidden" || style.display === "none") return;
@@ -180,16 +269,39 @@
           return;
         }
 
-        out.push({
+        const details = getElementDetails(el);
+        const priority = getPriorityScore(el, details);
+
+        elements.push({
+          element: el,
+          rect: r,
+          details: details,
+          priority: priority,
           index: idx,
-          xpath: getXPath(el),
-          tag: el.tagName.toLowerCase(),
-          text: (el.innerText || "").trim().slice(0, 60),
-          rect: { x: r.x, y: r.y, w: r.width, h: r.height },
         });
-        if (cfg.highlight) drawBox(container, r, idx);
         idx++;
       });
+    });
+
+    // Sort by priority and add to output
+    elements.sort((a, b) => b.priority - a.priority);
+
+    elements.forEach((item) => {
+      out.push({
+        index: item.index,
+        xpath: getXPath(item.element),
+        ...item.details,
+        rect: {
+          x: item.rect.x,
+          y: item.rect.y,
+          w: item.rect.width,
+          h: item.rect.height,
+        },
+        priority: item.priority,
+      });
+
+      if (cfg.highlight)
+        drawBox(container, item.rect, item.index, item.priority);
     });
 
     return out;

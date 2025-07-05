@@ -120,8 +120,15 @@ If you believe in agents that _feel human_, share the project on:
 Set secrets before running:
 
 ```bash
+# Required for OpenAI integration
 export OPENAI_API_KEY="sk-..."
+
+# Optional: Browser provider selection (default: "playwright")
 export BROWSER_PROVIDER="playwright"  # or "browserbase"
+
+# Required for BrowserBase integration
+export BROWSERBASE_API_KEY="your-browserbase-api-key"
+export BROWSERBASE_PROJECT_TOKEN="your-browserbase-project-token"
 ```
 
 ---
@@ -159,13 +166,12 @@ agent.run()
 
 ## 📂 Example Scripts
 
-| Script                                 | Purpose                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| `examples/launch_browser.py`           | Opens a Playwright browser with annotation overlay for manual exploration |
-| `examples/test_agent_memory.py`        | Demonstrates the agent with and without task memory                       |
-| `examples/test_browser_agents.py`      | Runs multiple agents in parallel for stress-testing                       |
-| `examples/test_captcha_detection.py`   | Shows basic captcha detection workflow                                    |
-| `examples/test_browserbase_adapter.py` | Demonstrates BrowserBase adapter usage and comparison with Playwright     |
+| Script                               | Purpose                                                     |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `examples/test_launch_browsers.py`   | Tests both Playwright and BrowserBase adapters side by side |
+| `examples/test_agent_memory.py`      | Demonstrates the agent with and without task memory         |
+| `examples/test_browser_agents.py`    | Runs multiple agents in parallel for stress-testing         |
+| `examples/test_captcha_detection.py` | Shows basic captcha detection workflow                      |
 
 Run the memory-enabled demo:
 
@@ -173,10 +179,10 @@ Run the memory-enabled demo:
 python -m examples.test_agent_memory enabled
 ```
 
-Test BrowserBase adapter:
+Test browser adapters:
 
 ```bash
-python -m examples.test_browserbase_adapter
+python -m examples.test_launch_browsers
 ```
 
 ---

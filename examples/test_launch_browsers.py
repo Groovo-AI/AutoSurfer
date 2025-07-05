@@ -146,6 +146,15 @@ def main():
     try:
         from browserbase import Client
         logger.info("✅ BrowserBase is available")
+
+        # Check if BrowserBase credentials are set
+        from autosurfer.config import Config
+        if not Config.BROWSERBASE_API_KEY:
+            logger.warn(
+                "⚠️  BROWSERBASE_API_KEY not set. BrowserBase tests will fail.")
+        else:
+            logger.info("✅ BrowserBase API key is configured")
+
     except ImportError:
         logger.warn(
             "⚠️  BrowserBase not installed. Install with: pip install browserbase")

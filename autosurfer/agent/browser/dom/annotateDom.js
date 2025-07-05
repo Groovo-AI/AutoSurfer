@@ -101,11 +101,11 @@
       c = document.createElement("div");
       c.id = CONTAINER_ID;
       Object.assign(c.style, {
-        position: "fixed",
+        position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
-        height: "100%",
+        height: `${document.body.scrollHeight}px`,
         pointerEvents: "none",
         zIndex: 2147483640,
       });
@@ -286,9 +286,9 @@
     const color = colors[idx % colors.length];
     const box = document.createElement("div");
     Object.assign(box.style, {
-      position: "fixed",
-      left: `${r.left}px`,
-      top: `${r.top}px`,
+      position: "absolute",
+      left: `${r.left + window.scrollX}px`,
+      top: `${r.top + window.scrollY}px`,
       width: `${r.width}px`,
       height: `${r.height}px`,
       border: `2px solid ${color}`,

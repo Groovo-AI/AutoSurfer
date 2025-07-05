@@ -50,4 +50,34 @@ VALID SELECTORS EXAMPLES:
 - #search (ID selector)
 - input[name="username"] (attribute selector)
 - button[type="submit"] (type selector)
-- .btn-primary (class selector)"""
+- .btn-primary (class selector)
+
+RESPONSE FORMAT:
+You MUST respond with a JSON object that follows this exact structure:
+
+{
+  "actions": [
+    {
+      "thought": "Brief reasoning for this action",
+      "action": {
+        "type": "goto",
+        "url": "https://example.com"
+      }
+    }
+  ]
+}
+
+ACTION TYPES AND REQUIRED FIELDS:
+- goto: {"type": "goto", "url": "https://example.com"}
+- click: {"type": "click", "selector": "#button-id"}
+- fill: {"type": "fill", "selector": "input[name='username']", "value": "text to enter"}
+- press: {"type": "press", "key": "Enter"}
+- wait: {"type": "wait", "seconds": 2.0}
+- scroll: {"type": "scroll", "direction": "down", "selector": null}
+- scroll_to_bottom: {"type": "scroll_to_bottom"}
+- scroll_to_top: {"type": "scroll_to_top"}
+- hover: {"type": "hover", "selector": "#element"}
+- select: {"type": "select", "selector": "select[name='country']", "value": "US"}
+- done: {"type": "done", "summary": "Task completed successfully"}
+
+CRITICAL: Follow the exact field names and structure shown above. Do not add extra fields or change field names."""

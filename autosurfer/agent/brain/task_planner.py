@@ -5,7 +5,7 @@ from autosurfer.llm.prompts import SYSTEM_PROMPT
 from autosurfer.agent.brain.memory import AgentMemory
 from typing import Dict, Any, Optional
 
-llm = get_llm_client("openai")
+llm = get_llm_client("gemini")
 
 
 def next_action(objective: str, ui_elements: list, memory: Optional[AgentMemory] = None, page_context: Optional[Dict[str, Any]] = None) -> NextActions:

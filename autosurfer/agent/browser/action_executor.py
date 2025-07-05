@@ -3,6 +3,7 @@ from autosurfer.llm.response_schema.browser_actions import NextActions
 from playwright.sync_api import Page, Browser, TimeoutError
 import time
 from typing import Optional
+from pathlib import Path
 
 
 class BrowserActionExecutor:
@@ -20,6 +21,10 @@ class BrowserActionExecutor:
             "scroll_to_top": self._scroll_to_top,
             "done": self._done,
         }
+        
+        # Load the annotation JavaScript
+        js_path = Path(__file__).parent / "dom" / "annotateDom.js"
+        self.js_code = js_path.read_text() if js_path.exists() else ""
 
     def execute(self, next_actions: NextActions):
         for item in next_actions.actions:
@@ -56,11 +61,25 @@ class BrowserActionExecutor:
                 logger.error(f"Failed to execute {item.action.type}: {e}")
                 raise
 
+    def _ensure_js_injected(self):
+        """Ensure the annotation JavaScript is injected into the page"""
+        try:
+            # Check if the function exists
+            has_function = self.page.evaluate("() => typeof window.collectInteractive === 'function'")
+            if not has_function and self.js_code:
+                # Inject the JavaScript directly
+                self.page.evaluate(self.js_code)
+        except Exception as e:
+            logger.error(f"Failed to inject JavaScript: {e}")
+
     def annotate_ui(self):
         try:
             self.page.wait_for_load_state("networkidle", timeout=10000)
         except:
             pass
+
+        # Ensure JavaScript is injected before calling the function
+        self._ensure_js_injected()
 
         elements = self.page.evaluate(
             "() => window.collectInteractive({ highlight: true })")

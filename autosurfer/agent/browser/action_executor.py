@@ -3,6 +3,7 @@ from autosurfer.llm.response_schema.browser_actions import NextActions
 from playwright.sync_api import Page, Browser, TimeoutError
 import time
 from typing import Optional
+from pathlib import Path
 
 
 class BrowserActionExecutor:
@@ -61,6 +62,10 @@ class BrowserActionExecutor:
             self.page.wait_for_load_state("networkidle", timeout=10000)
         except:
             pass
+
+        # Always inject script to ensure it's available
+        js_path = Path(__file__).parent / "dom" / "annotateDom.js"
+        self.page.evaluate(js_path.read_text())
 
         elements = self.page.evaluate(
             "() => window.collectInteractive({ highlight: true })")

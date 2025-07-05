@@ -7,7 +7,7 @@ class Config:
 
     if OS_PLATFORM == "Darwin":
         OS = "mac"
-    elif OS_PLATFORM == "Linux":
+    elif OS_PLATFORM == "linux":
         OS = "linux"
     elif OS_PLATFORM == "Windows":
         OS = "windows"
@@ -15,3 +15,7 @@ class Config:
         OS = "unknown"
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+    # BrowserBase configuration
+    BROWSERBASE_API_KEY = os.getenv("BROWSERBASE_API_KEY")
+    BROWSERBASE_PROJECT_ID = os.getenv("BROWSERBASE_PROJECT_ID")

@@ -1,37 +1,24 @@
 from autosurfer.logger import logger
 from autosurfer.agent.brain.task_planner import next_action
 from autosurfer.agent.brain.memory import AgentMemory, MemoryEntry
-from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
+from autosurfer.agent.browser.adapters import BrowserAdapter, BrowserSettings, create_browser_adapter
+from autosurfer.config import Config
 from autosurfer.agent.browser.action_executor import BrowserActionExecutor
 from autosurfer.agent.browser.captcha_handler import CaptchaHandler
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import re
 
 
 class AutoSurferAgent:
-    def __init__(self, objective: str, headless: bool = False, max_retries: int = 3, enable_memory: bool = False):
+    def __init__(self, objective: str, browser_session: BrowserAdapter, max_retries: int = 3, enable_memory: bool = False):
         self.objective = objective
-        self.headless = headless
+        self.browser_session = browser_session
         self.max_retries = max_retries
         self.enable_memory = enable_memory
-        self.browser_settings = BrowserSettings(
-            stealth_mode=True,
-            headless=headless
-        )
-        self.browser_session = BrowserManager(
-            settings=self.browser_settings
-        )
+
         self.memory = AgentMemory(
             objective=objective) if enable_memory else None
-
-        # Simple heuristic: extract target click text for done detection
-        self._click_target = None
-        click_match = re.search(
-            r"click\b.*?[\"']([^\"']+?)[\"']", objective, re.IGNORECASE)
-        if click_match:
-            self._click_target = click_match.group(1).lower()
-            logger.debug(f"Click target detected: {self._click_target}")
 
     def run(self):
         logger.info(f"🎯 Objective: {self.objective}")
@@ -157,14 +144,6 @@ class AutoSurferAgent:
                     logger.info(f"[MEM] {snapshot}")
                 else:
                     action_count += 1
-
-                # Heuristic: if we clicked the target link successfully, mark task done
-                if self._click_target:
-                    for item in plan.actions:
-                        if item.action.type == "click" and self._click_target in str(item.action.selector).lower():
-                            logger.info(
-                                "✅ Detected target link clicked. Task completed.")
-                            return  # Exit run method
 
                 # Check if task is complete
                 if hasattr(plan, 'actions') and any(item.action.type == "done" for item in plan.actions):

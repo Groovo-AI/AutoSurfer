@@ -3,6 +3,7 @@ from autosurfer.logger import logger
 from autosurfer.agent.brain.task_planner import next_action
 from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
 from autosurfer.agent.browser.action_executor import BrowserActionExecutor
+from autosurfer.agent.browser.captcha_handler import CaptchaHandler
 import time
 from typing import List, Dict, Any
 
@@ -28,6 +29,9 @@ class AutoSurferAgent:
             browser_session=self.browser_session.browser
         )
 
+        # Initialize captcha handler
+        captcha_handler = CaptchaHandler(self.browser_session.page)
+
         try:
             retry_count = 0
             consecutive_failures = 0
@@ -36,6 +40,11 @@ class AutoSurferAgent:
                 # Get current page state
                 current_url = self.browser_session.page.url
                 page_title = self.browser_session.page.title
+
+                # Check for captcha before proceeding
+                if not captcha_handler.handle_captcha_detection():
+                    logger.error("❌ Task terminated due to captcha detection")
+                    break
 
                 # Get UI elements
                 ui_elements = executor.annotate_ui()
@@ -69,12 +78,23 @@ class AutoSurferAgent:
                         break
                     except Exception as e:
                         logger.warn(f"Attempt {attempt + 1} failed: {e}")
+
+                        # Check if failure might be due to captcha
+                        if not captcha_handler.handle_captcha_detection():
+                            logger.error(
+                                "❌ Task terminated due to captcha detection after action failure")
+                            break
+
                         if attempt < self.max_retries - 1:
                             time.sleep(1)  # Brief pause before retry
                         else:
                             consecutive_failures += 1
                             logger.error(
                                 f"All retry attempts failed for action: {e}")
+
+                # If captcha was detected, break out of the loop
+                if not execution_success and not captcha_handler.handle_captcha_detection():
+                    break
 
                 # Add to memory
                 execution_result = {

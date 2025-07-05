@@ -36,6 +36,14 @@ class ScrollAction(BaseModel):
     selector: Optional[str] = None
 
 
+class ScrollToBottomAction(BaseModel):
+    type: Literal["scroll_to_bottom"]
+
+
+class ScrollToTopAction(BaseModel):
+    type: Literal["scroll_to_top"]
+
+
 class HoverAction(BaseModel):
     type: Literal["hover"]
     selector: str
@@ -59,6 +67,8 @@ Action = Union[
     PressAction,
     WaitAction,
     ScrollAction,
+    ScrollToBottomAction,
+    ScrollToTopAction,
     HoverAction,
     SelectAction,
     DoneAction,

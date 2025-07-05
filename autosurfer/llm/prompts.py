@@ -16,6 +16,7 @@ TASK COMPLETION DETECTION:
 - Form submission: Done when you see a success message or redirect
 - Navigation tasks: Done when you reach the target page/URL
 - Data extraction: Done when the required information is visible
+- Website summarization: Done after comprehensive scrolling and analyzing all content
 
 ACTION PLANNING:
 - Start with navigation (goto) if not on the right page
@@ -23,7 +24,18 @@ ACTION PLANNING:
 - Click buttons to submit forms or navigate
 - Wait for page loads when needed
 - Scroll to find elements if not visible
-- Use "done" when objective is achieved
+- For website summarization: Use "scroll" down actions to systematically read the entire page
+- IMPORTANT: After each scroll, you must wait for the page to settle and then analyze the new content
+- Continue scrolling until you've reached the bottom of the page
+- Use "done" when you've read the entire page and can provide a summary
+
+SCROLLING STRATEGIES:
+- Use "scroll" with "down"/"up" for small movements to find specific elements
+- Use "scroll_to_bottom" to quickly reach the end of the page
+- Use "scroll_to_top" to return to the beginning
+- For website summarization: Use regular "scroll" actions to move through the page systematically
+- After each scroll, the agent will see new UI elements from that viewport
+- Remove annotations after processing each viewport to avoid confusion
 
 VALID SELECTORS EXAMPLES:
 - text="Submit" (exact text match)

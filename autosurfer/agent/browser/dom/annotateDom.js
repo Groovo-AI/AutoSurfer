@@ -174,6 +174,65 @@
     return false;
   }
 
+  function hasTextContent(el) {
+    // Check if element has meaningful text content
+    const text = el.textContent ? el.textContent.trim() : "";
+    return text.length > 0 && text.length < 1000; // Limit to avoid huge text blocks
+  }
+
+  function isTextElement(el, style) {
+    const tag = el.tagName.toLowerCase();
+
+    // Focus on container-level text elements, not low-level formatting
+    const containerTags = [
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6", // Headings
+      "p",
+      "div",
+      "section",
+      "article",
+      "main",
+      "aside", // Main containers
+      "li",
+      "td",
+      "th", // List items and table cells
+      "blockquote",
+      "cite",
+      "figcaption", // Quotes and captions
+      "nav",
+      "header",
+      "footer", // Navigation and structural elements
+    ];
+
+    // Only include container-level elements, skip low-level formatting
+    if (!containerTags.includes(tag)) return false;
+
+    // Check if it has meaningful text content
+    if (!hasTextContent(el)) return false;
+
+    // Skip if it's hidden or has no dimensions
+    if (style.visibility === "hidden" || style.display === "none") return false;
+    if (el.offsetWidth === 0 || el.offsetHeight === 0) return false;
+
+    // Skip very small elements (likely low-level formatting)
+    if (el.offsetWidth < 50 || el.offsetHeight < 20) return false;
+
+    // Skip if it's just a wrapper with no direct text content
+    if (el.children.length > 0) {
+      // Check if any direct child has text
+      const hasDirectText = Array.from(el.childNodes).some(
+        (node) => node.nodeType === 3 && node.textContent.trim().length > 0
+      );
+      if (!hasDirectText) return false;
+    }
+
+    return true;
+  }
+
   function getPriorityScore(el, details) {
     let score = 0;
 
@@ -198,6 +257,16 @@
 
     // Priority for buttons and links
     if (details.tag === "button" || details.tag === "a") score += 30;
+
+    // Priority for headings (important for content structure)
+    if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(details.tag)) {
+      score += 25;
+    }
+
+    // Priority for paragraphs and main content
+    if (["p", "article", "section", "main"].includes(details.tag)) {
+      score += 15;
+    }
 
     // Priority for visible text
     if (details.text && details.text.length > 0) score += 20;
@@ -260,7 +329,9 @@
 
       const rects = getCachedRects(el);
       if (cfg.viewportOnly && !inViewport(rects, cfg.viewportExpansion)) return;
-      if (!isInteractive(el, style)) return;
+
+      // Include both interactive elements and text elements
+      if (!isInteractive(el, style) && !isTextElement(el, style)) return;
 
       rects.forEach((r) => {
         if (r.width === 0 || r.height === 0) return;

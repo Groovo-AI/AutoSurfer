@@ -16,6 +16,8 @@ class BrowserActionExecutor:
             "press": self._press,
             "wait": self._wait,
             "scroll": self._scroll,
+            "scroll_to_bottom": self._scroll_to_bottom,
+            "scroll_to_top": self._scroll_to_top,
             "done": self._done,
         }
 
@@ -40,6 +42,10 @@ class BrowserActionExecutor:
                     fn(item.action.seconds)
                 elif item.action.type == "scroll":
                     fn(item.action.direction, item.action.selector)
+                elif item.action.type == "scroll_to_bottom":
+                    fn()
+                elif item.action.type == "scroll_to_top":
+                    fn()
                 elif item.action.type == "done":
                     fn(item.action.summary)
                     return
@@ -180,10 +186,76 @@ class BrowserActionExecutor:
                     self.page.evaluate("window.scrollBy(0, -500)")
         else:
             logger.info(f"Scrolling {direction}")
+
+            # Remove existing annotations before scrolling
+            self.remove_annotation()
+            logger.info("Removed existing annotations")
+            time.sleep(2)  # Wait for annotations to be fully removed
+
             if direction == "down":
-                self.page.evaluate("window.scrollBy(0, 500)")
+                # Get window height and scroll by that amount to avoid duplicate content
+                window_height = self.page.evaluate("window.innerHeight")
+                self.page.evaluate(f"window.scrollBy(0, {window_height})")
             elif direction == "up":
-                self.page.evaluate("window.scrollBy(0, -500)")
+                # Get window height and scroll up by that amount
+                window_height = self.page.evaluate("window.innerHeight")
+                self.page.evaluate(f"window.scrollBy(0, -{window_height})")
+
+            logger.info(f"Scrolled {direction} by {window_height}px")
+            time.sleep(2)  # Wait for scroll to complete and content to load
+
+            # Annotate the new viewport after scrolling
+            self.annotate_ui()
+            logger.info(f"Annotated new viewport after scrolling {direction}")
+
+    def scroll_to_bottom(self):
+        """Scroll to the very bottom of the page"""
+        logger.info("Scrolling to bottom of page")
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+
+    def scroll_to_top(self):
+        """Scroll to the very top of the page"""
+        logger.info("Scrolling to top of page")
+        self.page.evaluate("window.scrollTo(0, 0)")
+
+    def get_scroll_info(self):
+        """Get current scroll position and page dimensions"""
+        return self.page.evaluate("""
+            () => {
+                return {
+                    scrollY: window.scrollY,
+                    scrollHeight: document.body.scrollHeight,
+                    clientHeight: document.documentElement.clientHeight,
+                    windowHeight: window.innerHeight,
+                    isAtBottom: window.scrollY + window.innerHeight >= document.body.scrollHeight,
+                    isAtTop: window.scrollY === 0
+                }
+            }
+        """)
+
+    def _scroll_to_bottom(self):
+        """Scroll to the very bottom of the page"""
+        logger.info("Scrolling to bottom of page")
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+
+    def _scroll_to_top(self):
+        """Scroll to the very top of the page"""
+        logger.info("Scrolling to top of page")
+        self.page.evaluate("window.scrollTo(0, 0)")
+
+    def _scroll_comprehensive(self, description: str):
+        """Comprehensive scrolling through the entire page with DOM annotation at each position"""
+        logger.info(f"Starting comprehensive scroll: {description}")
+
+        # Get initial scroll info
+        scroll_info = self.get_scroll_info()
+        total_height = scroll_info['scrollHeight']
+        window_height = scroll_info['windowHeight']
+
+        # Annotate the current viewport
+        self.annotate_ui()
+        logger.info(
+            "Initial viewport annotated - agent can now interact with current viewport")
 
     def _done(self, summary: str):
         logger.info(f"[DONE] {summary}")

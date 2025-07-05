@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 llm = get_llm_client("openai")
 
 
-def next_action(objective: str, ui_elements: list, memory: Optional[list] = None, page_context: Optional[Dict[str, Any]] = None) -> NextActions:
+def next_action(objective: str, ui_elements: list, memory: Optional[list] = None, page_context: Optional[Dict[str, Any]] = None):
     context_info = []
 
     if page_context:
@@ -62,4 +62,5 @@ def next_action(objective: str, ui_elements: list, memory: Optional[list] = None
         )
     ]
 
-    return llm.invoke(messages)
+    response = llm.invoke(messages)
+    return response

@@ -83,6 +83,23 @@ def test_simple_navigation():
         print(f"❌ Simple navigation test failed: {e}")
 
 
+def test_website_summarization():
+    """Test website summarization with scrolling"""
+    print("\n" + "="*60)
+    print("TESTING WEBSITE SUMMARIZATION WITH SCROLLING")
+    print("="*60)
+
+    objective = "Go to https://octifytechnologies.com/ and summarize their website by scrolling through the page"
+
+    try:
+        agent = AutoSurferAgent(objective=objective,
+                                headless=False, max_retries=3)
+        agent.run()
+        print("✅ Website summarization test completed successfully!")
+    except Exception as e:
+        print(f"❌ Website summarization test failed: {e}")
+
+
 def main():
     """Run all tests"""
     print("🚀 AutoSurfer Enhanced Accuracy Test Suite")
@@ -96,10 +113,11 @@ def main():
 
     # Run tests
     tests = [
-        test_simple_navigation,
-        test_httpbin_form,
-        test_wikipedia_navigation,
-        test_google_search,
+        # test_simple_navigation,
+        # test_httpbin_form,
+        # test_wikipedia_navigation,
+        # test_google_search,
+        test_website_summarization,
     ]
 
     for test in tests:

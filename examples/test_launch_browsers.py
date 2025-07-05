@@ -14,36 +14,9 @@ from pathlib import Path
 # Add the autosurfer package to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
-def test_playwright_adapter():
-    """Test Playwright adapter by creating browser and navigating"""
-    logger.info("\n" + "="*60)
-    logger.info("TESTING PLAYWRIGHT ADAPTER")
-    logger.info("="*60)
-
-    try:
-        # Create Playwright adapter
-        settings = BrowserSettings(headless=False, stealth_mode=True)
-        browser_session = create_browser_adapter("playwright", settings)
-
-        logger.info("✅ Playwright adapter created successfully")
-
-        # Test basic browser functionality
-        page = browser_session.page
-        page.goto("https://example.com")
-        title = page.title()
-        logger.info(f"✅ Navigated to example.com, title: {title}")
-
-        # Test page interaction
-        page.screenshot(path="playwright_test.png")
-        logger.info("✅ Screenshot saved as playwright_test.png")
-
-        # Close browser
-        browser_session.close()
-        logger.info("✅ Playwright browser closed successfully")
-
-    except Exception as e:
-        logger.error(f"❌ Playwright adapter test failed: {e}")
+# Create .temp directory for screenshots
+TEMP_DIR = Path(__file__).parent.parent / ".temp"
+TEMP_DIR.mkdir(exist_ok=True)
 
 
 def test_browserbase_adapter():
@@ -66,8 +39,9 @@ def test_browserbase_adapter():
         logger.info(f"✅ Navigated to example.com, title: {title}")
 
         # Test page interaction
-        page.screenshot(path="browserbase_test.png")
-        logger.info("✅ Screenshot saved as browserbase_test.png")
+        screenshot_path = TEMP_DIR / "browserbase_test.png"
+        page.screenshot(path=str(screenshot_path))
+        logger.info(f"✅ Screenshot saved as {screenshot_path}")
 
         # Close browser
         browser_session.close()
@@ -77,6 +51,38 @@ def test_browserbase_adapter():
         logger.error(f"❌ BrowserBase adapter test failed: {e}")
 
 
+def test_playwright_adapter():
+    """Test Playwright adapter by creating browser and navigating"""
+    logger.info("\n" + "="*60)
+    logger.info("TESTING PLAYWRIGHT ADAPTER")
+    logger.info("="*60)
+
+    try:
+        # Create Playwright adapter
+        settings = BrowserSettings(headless=False, stealth_mode=True)
+        browser_session = create_browser_adapter("playwright", settings)
+
+        logger.info("✅ Playwright adapter created successfully")
+
+        # Test basic browser functionality
+        page = browser_session.page
+        page.goto("https://example.com")
+        title = page.title()
+        logger.info(f"✅ Navigated to example.com, title: {title}")
+
+        # Test page interaction
+        screenshot_path = TEMP_DIR / "playwright_test.png"
+        page.screenshot(path=str(screenshot_path))
+        logger.info(f"✅ Screenshot saved as {screenshot_path}")
+
+        # Close browser
+        browser_session.close()
+        logger.info("✅ Playwright browser closed successfully")
+
+    except Exception as e:
+        logger.error(f"❌ Playwright adapter test failed: {e}")
+
+
 def test_adapter_comparison():
     """Compare both adapters side by side"""
     logger.info("\n" + "="*60)
@@ -84,6 +90,27 @@ def test_adapter_comparison():
     logger.info("="*60)
 
     test_url = "https://httpbin.org/status/200"
+
+    # Test BrowserBase first
+    logger.info("\n--- BROWSERBASE ---")
+    try:
+        start_time = time.time()
+        settings = BrowserSettings(headless=True)
+        browser_session = create_browser_adapter("browserbase", settings)
+
+        page = browser_session.page
+        page.goto(test_url)
+        status = page.content()
+
+        browserbase_time = time.time() - start_time
+        browser_session.close()
+
+        logger.info(f"✅ BrowserBase completed in {browserbase_time:.2f}s")
+        logger.info(f"   Status: {len(status)} characters received")
+
+    except Exception as e:
+        logger.error(f"❌ BrowserBase failed: {e}")
+        browserbase_time = None
 
     # Test Playwright
     logger.info("\n--- PLAYWRIGHT ---")
@@ -106,32 +133,11 @@ def test_adapter_comparison():
         logger.error(f"❌ Playwright failed: {e}")
         playwright_time = None
 
-    # Test BrowserBase
-    logger.info("\n--- BROWSERBASE ---")
-    try:
-        start_time = time.time()
-        settings = BrowserSettings(headless=True)
-        browser_session = create_browser_adapter("browserbase", settings)
-
-        page = browser_session.page
-        page.goto(test_url)
-        status = page.content()
-
-        browserbase_time = time.time() - start_time
-        browser_session.close()
-
-        logger.info(f"✅ BrowserBase completed in {browserbase_time:.2f}s")
-        logger.info(f"   Status: {len(status)} characters received")
-
-    except Exception as e:
-        logger.error(f"❌ BrowserBase failed: {e}")
-        browserbase_time = None
-
     # Comparison
     if playwright_time and browserbase_time:
         logger.info(f"\n📊 COMPARISON:")
-        logger.info(f"Playwright: {playwright_time:.2f}s")
         logger.info(f"BrowserBase: {browserbase_time:.2f}s")
+        logger.info(f"Playwright: {playwright_time:.2f}s")
         difference = browserbase_time - playwright_time
         logger.info(
             f"Difference: {difference:+.2f}s ({difference/playwright_time*100:+.1f}%)")
@@ -144,7 +150,7 @@ def main():
 
     # Check if BrowserBase is available
     try:
-        from browserbase import Client
+        from browserbase import Browserbase
         logger.info("✅ BrowserBase is available")
 
         # Check if BrowserBase credentials are set
@@ -155,6 +161,12 @@ def main():
         else:
             logger.info("✅ BrowserBase API key is configured")
 
+        if not Config.BROWSERBASE_PROJECT_ID:
+            logger.warn(
+                "⚠️  BROWSERBASE_PROJECT_ID not set. BrowserBase tests will fail.")
+        else:
+            logger.info("✅ BrowserBase project ID is configured")
+
     except ImportError:
         logger.warn(
             "⚠️  BrowserBase not installed. Install with: pip install browserbase")
@@ -163,10 +175,10 @@ def main():
         logger.warn(f"⚠️  BrowserBase import error: {e}")
         logger.warn("BrowserBase tests will be skipped")
 
-    # Run tests
+    # Run tests - BrowserBase first, then Playwright
     tests = [
-        test_playwright_adapter,
         test_browserbase_adapter,
+        test_playwright_adapter,
         test_adapter_comparison,
     ]
 

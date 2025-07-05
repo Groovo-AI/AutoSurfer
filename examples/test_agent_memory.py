@@ -7,6 +7,7 @@ This script shows the difference between running the agent with memory enabled v
 
 from autosurfer.logger import logger
 from autosurfer.agent.browser_agent import AutoSurferAgent
+from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
 import time
 import sys
 import os
@@ -30,9 +31,11 @@ def test_memory_disabled():
     logger.info("Expected: Basic functionality, no memory tracking")
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(
             objective=objective,
-            headless=False,  # Run in visible mode for testing
+            browser_session=browser_session,
             enable_memory=False
         )
 
@@ -62,9 +65,11 @@ def test_memory_enabled():
     logger.info("Expected: Enhanced functionality with memory tracking")
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(
             objective=objective,
-            headless=False,  # Run in visible mode for testing
+            browser_session=browser_session,
             enable_memory=True
         )
 
@@ -112,9 +117,11 @@ def test_memory_comparison():
     # Test without memory
     logger.info("\n--- WITHOUT MEMORY ---")
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent_no_memory = AutoSurferAgent(
             objective=objective,
-            headless=False,
+            browser_session=browser_session,
             enable_memory=False
         )
         start_time = time.time()
@@ -128,9 +135,11 @@ def test_memory_comparison():
     # Test with memory
     logger.info("\n--- WITH MEMORY ---")
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent_with_memory = AutoSurferAgent(
             objective=objective,
-            headless=False,
+            browser_session=browser_session,
             enable_memory=True
         )
         start_time = time.time()

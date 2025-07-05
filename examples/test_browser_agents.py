@@ -6,6 +6,7 @@ This script shows how the enhanced system handles common web automation tasks.
 
 from autosurfer.logger import logger
 from autosurfer.agent.browser_agent import AutoSurferAgent
+from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
 import os
 import sys
 import time
@@ -26,8 +27,10 @@ def test_httpbin_form():
     objective = "Go to httpbin.org/forms/post and fill out the form with name 'John Doe', age '30', and submit it"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ HTTPBin form test completed successfully!")
     except Exception as e:
@@ -43,8 +46,10 @@ def test_google_search():
     objective = "Go to google.com and search for 'Python automation'"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ Google search test completed successfully!")
     except Exception as e:
@@ -60,8 +65,10 @@ def test_wikipedia_navigation():
     objective = "Go to wikipedia.org and search for 'Python programming language'"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ Wikipedia navigation test completed successfully!")
     except Exception as e:
@@ -77,8 +84,10 @@ def test_simple_navigation():
     objective = "Go to example.com and verify the page loads"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ Simple navigation test completed successfully!")
     except Exception as e:
@@ -94,12 +103,33 @@ def test_website_summarization():
     objective = "Go to https://octifytechnologies.com/ and summarize their website by scrolling through the page"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ Website summarization test completed successfully!")
     except Exception as e:
         logger.error(f"❌ Website summarization test failed: {e}")
+
+
+def test_browserbase_adapter():
+    """Test BrowserBase adapter"""
+    logger.info("\n" + "="*60)
+    logger.info("TESTING BROWSERBASE ADAPTER")
+    logger.info("="*60)
+
+    objective = "Go to example.com and verify the page loads"
+
+    try:
+        settings = BrowserSettings(headless=True)
+        browser_session = create_browser_adapter("browserbase", settings)
+        agent = AutoSurferAgent(objective=objective,
+                                browser_session=browser_session, max_retries=3)
+        agent.run()
+        logger.info("✅ BrowserBase adapter test completed successfully!")
+    except Exception as e:
+        logger.error(f"❌ BrowserBase adapter test failed: {e}")
 
 
 def main():
@@ -121,6 +151,7 @@ def main():
         # test_wikipedia_navigation,
         # test_google_search,
         test_website_summarization,
+        test_browserbase_adapter,
     ]
 
     for test in tests:

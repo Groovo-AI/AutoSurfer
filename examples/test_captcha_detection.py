@@ -7,6 +7,7 @@ This script shows how the system detects captchas and exits gracefully.
 from autosurfer.logger import logger
 from autosurfer.agent.browser_agent import AutoSurferAgent
 from autosurfer.agent.browser.captcha_handler import CaptchaHandler
+from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
 import os
 import sys
 import time
@@ -24,20 +25,18 @@ def test_captcha_detection():
     logger.info("TESTING SIMPLE CAPTCHA DETECTION")
     logger.info("="*60)
 
-    from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
-
     # Create browser session
     settings = BrowserSettings(stealth_mode=True, headless=False)
-    browser_manager = BrowserManager(settings=settings)
+    browser_session = create_browser_adapter("playwright", settings)
 
     try:
         # Navigate to a site that might have captcha
-        browser_manager.page.goto(
+        browser_session.page.goto(
             "https://www.google.com/recaptcha/api2/demo", wait_until="networkidle")
         time.sleep(2)
 
         # Initialize captcha handler
-        captcha_handler = CaptchaHandler(browser_manager.page)
+        captcha_handler = CaptchaHandler(browser_session.page)
 
         # Test detection
         result = captcha_handler.handle_captcha_detection()
@@ -50,7 +49,7 @@ def test_captcha_detection():
     except Exception as e:
         logger.error(f"❌ Captcha detection test failed: {e}")
     finally:
-        browser_manager.close()
+        browser_session.close()
 
 
 def test_agent_with_captcha_detection():
@@ -62,8 +61,10 @@ def test_agent_with_captcha_detection():
     objective = "Go to google.com and search for 'test' - exit if captcha appears"
 
     try:
+        settings = BrowserSettings(headless=False)
+        browser_session = create_browser_adapter("playwright", settings)
         agent = AutoSurferAgent(objective=objective,
-                                headless=False, max_retries=3)
+                                browser_session=browser_session, max_retries=3)
         agent.run()
         logger.info("✅ Agent with captcha detection completed!")
     except Exception as e:
@@ -76,20 +77,18 @@ def test_captcha_detection_methods():
     logger.info("TESTING CAPTCHA DETECTION METHODS")
     logger.info("="*60)
 
-    from autosurfer.agent.browser.manager import BrowserManager, BrowserSettings
-
     # Create browser session
     settings = BrowserSettings(stealth_mode=True, headless=False)
-    browser_manager = BrowserManager(settings=settings)
+    browser_session = create_browser_adapter("playwright", settings)
 
     try:
         # Navigate to a test page
-        browser_manager.page.goto(
+        browser_session.page.goto(
             "https://www.google.com/recaptcha/api2/demo", wait_until="networkidle")
         time.sleep(2)
 
         # Initialize captcha handler
-        captcha_handler = CaptchaHandler(browser_manager.page)
+        captcha_handler = CaptchaHandler(browser_session.page)
 
         # Test detection
         captcha_info = captcha_handler.detect_captcha()
@@ -106,7 +105,7 @@ def test_captcha_detection_methods():
     except Exception as e:
         logger.error(f"❌ Captcha detection methods test failed: {e}")
     finally:
-        browser_manager.close()
+        browser_session.close()
 
 
 def main():

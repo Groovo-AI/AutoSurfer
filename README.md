@@ -121,6 +121,7 @@ Set secrets before running:
 
 ```bash
 export OPENAI_API_KEY="sk-..."
+export BROWSER_PROVIDER="playwright"  # or "browserbase"
 ```
 
 ---
@@ -129,10 +130,26 @@ export OPENAI_API_KEY="sk-..."
 
 ```python
 from autosurfer.agent.browser_agent import AutoSurferAgent
+from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
 
+# Create browser session first
+settings = BrowserSettings(headless=True, stealth_mode=True)
+browser_session = create_browser_adapter("playwright", settings)
+
+# Pass browser session to agent
 agent = AutoSurferAgent(
     objective="Go to https://example.com and click 'More information...'",
-    headless=True,
+    browser_session=browser_session,
+    enable_memory=True,
+)
+agent.run()
+
+# Use BrowserBase
+settings = BrowserSettings(headless=True)
+browser_session = create_browser_adapter("browserbase", settings)
+agent = AutoSurferAgent(
+    objective="Go to https://example.com and click 'More information...'",
+    browser_session=browser_session,
     enable_memory=True,
 )
 agent.run()
@@ -142,17 +159,24 @@ agent.run()
 
 ## 📂 Example Scripts
 
-| Script                               | Purpose                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------- |
-| `examples/launch_browser.py`         | Opens a Playwright browser with annotation overlay for manual exploration |
-| `examples/test_agent_memory.py`      | Demonstrates the agent with and without task memory                       |
-| `examples/test_browser_agents.py`    | Runs multiple agents in parallel for stress-testing                       |
-| `examples/test_captcha_detection.py` | Shows basic captcha detection workflow                                    |
+| Script                                 | Purpose                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `examples/launch_browser.py`           | Opens a Playwright browser with annotation overlay for manual exploration |
+| `examples/test_agent_memory.py`        | Demonstrates the agent with and without task memory                       |
+| `examples/test_browser_agents.py`      | Runs multiple agents in parallel for stress-testing                       |
+| `examples/test_captcha_detection.py`   | Shows basic captcha detection workflow                                    |
+| `examples/test_browserbase_adapter.py` | Demonstrates BrowserBase adapter usage and comparison with Playwright     |
 
 Run the memory-enabled demo:
 
 ```bash
 python -m examples.test_agent_memory enabled
+```
+
+Test BrowserBase adapter:
+
+```bash
+python -m examples.test_browserbase_adapter
 ```
 
 ---

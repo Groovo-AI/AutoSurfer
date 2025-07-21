@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 from autosurfer.logger import logger
+from autosurfer.agent.brain.loop_detector import LoopDetector
 
 
 @dataclass
@@ -18,6 +19,11 @@ class MemoryEntry:
     attempts: int = 1
     error_message: Optional[str] = None
     ui_elements_count: Optional[int] = None
+    # --- Added for robust loop detection ---
+    dom_hash: Optional[str] = None
+    ui_state_hash: Optional[str] = None
+    scroll_position: Optional[int] = None
+    retry_count: Optional[int] = None
 
 
 @dataclass
@@ -109,21 +115,7 @@ class AgentMemory:
 
     def is_stuck(self) -> bool:
         """Check if agent might be stuck in a loop"""
-        if len(self.entries) < 5:
-            return False
-
-        # Check for repeated failures
-        recent_failures = sum(
-            1 for entry in self.entries[-5:] if not entry.success)
-        if recent_failures >= 4:
-            return True
-
-        # Check for repeated actions
-        recent_actions = [entry.action_type for entry in self.entries[-5:]]
-        if len(set(recent_actions)) <= 2:
-            return True
-
-        return False
+        return LoopDetector().is_stuck(self.entries)
 
     def _serialize(self) -> Dict[str, Any]:
         """Return a JSON-serialisable dict representing the full memory state."""

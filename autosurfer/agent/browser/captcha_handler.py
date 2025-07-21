@@ -55,17 +55,25 @@ class CaptchaHandler:
         }
 
     def detect_captcha(self) -> Optional[CaptchaInfo]:
-        """Detect if there's a captcha on the current page"""
-        logger.info("Scanning for captcha elements...")
+        """Detect if there's a visible captcha on the current page"""
+        logger.info("Scanning for visible captcha elements...")
 
-        # Check for various captcha types
+        # Check for various captcha types - only if they are visible
         for captcha_type, selectors in self.captcha_selectors.items():
             for selector in selectors:
                 try:
                     elements = self.page.query_selector_all(selector)
-                    if elements:
+                    visible_elements = []
+
+                    for element in elements:
+                        # Check if element is visible (not hidden by CSS)
+                        is_visible = element.is_visible()
+                        if is_visible:
+                            visible_elements.append(element)
+
+                    if visible_elements:
                         logger.info(
-                            f"Detected {captcha_type} captcha with selector: {selector}")
+                            f"Detected visible {captcha_type} captcha with selector: {selector}")
                         return CaptchaInfo(
                             type=captcha_type,
                             confidence=0.9,
@@ -75,21 +83,50 @@ class CaptchaHandler:
                     logger.debug(f"Selector {selector} failed: {e}")
                     continue
 
-        # Check for captcha-related text in page content
-        page_text = self.page.content().lower()
-        captcha_indicators = [
-            'captcha', 'recaptcha', 'hcaptcha', 'verify you are human',
-            'prove you are not a robot', 'security check', 'verification'
-        ]
+        # Check for captcha-related text in visible page content only
+        try:
+            # Get only visible text content
+            visible_text = self.page.evaluate("""
+                () => {
+                    const walker = document.createTreeWalker(
+                        document.body,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: function(node) {
+                                const style = window.getComputedStyle(node.parentElement);
+                                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                                    return NodeFilter.FILTER_REJECT;
+                                }
+                                return NodeFilter.FILTER_ACCEPT;
+                            }
+                        }
+                    );
+                    
+                    let text = '';
+                    let node;
+                    while (node = walker.nextNode()) {
+                        text += node.textContent + ' ';
+                    }
+                    return text.toLowerCase();
+                }
+            """)
 
-        for indicator in captcha_indicators:
-            if indicator in page_text:
-                logger.info(f"Detected captcha indicator: {indicator}")
-                return CaptchaInfo(
-                    type='unknown',
-                    confidence=0.7,
-                    selectors=[],
-                )
+            captcha_indicators = [
+                'captcha', 'recaptcha', 'hcaptcha', 'verify you are human',
+                'prove you are not a robot', 'security check', 'verification'
+            ]
+
+            for indicator in captcha_indicators:
+                if indicator in visible_text:
+                    logger.info(
+                        f"Detected visible captcha indicator: {indicator}")
+                    return CaptchaInfo(
+                        type='unknown',
+                        confidence=0.7,
+                        selectors=[],
+                    )
+        except Exception as e:
+            logger.debug(f"Error checking visible text content: {e}")
 
         return None
 

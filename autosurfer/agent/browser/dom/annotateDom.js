@@ -378,7 +378,94 @@
     return out;
   };
 
-  // --- RESIZE/SCROLL UPDATES (throttled) ---
+  // Cache for last collected elements (shared across renders)
+  let _lastElements = [];
+
+  // --- ANNOTATION MANAGER API ---
+  const AnnotationManager = {
+    /**
+     * Initialise/overwrite config and return manager for chaining.
+     * @param {Object} options Same options accepted by collectInteractive
+     */
+    init(options = {}) {
+      Object.assign(cfg, options);
+      return this;
+    },
+    /**
+     * Clear all current highlights/overlay boxes.
+     */
+    clear() {
+      cleanupHighlights();
+    },
+    /**
+     * Collect elements in the current viewport and draw highlight boxes.
+     * Returns the element metadata array.
+     */
+    render(options = {}) {
+      _lastElements = window.collectInteractive({
+        highlight: true,
+        ...options,
+      });
+      return _lastElements;
+    },
+    /**
+     * Retrieve the last element array without re-scanning the DOM.
+     */
+    getElements() {
+      return _lastElements;
+    },
+    /**
+     * Enable automatic re-rendering after scroll/resize *after the viewport has
+     * been idle* for the given debounce period (ms). This replaces the previous
+     * eager requestAnimationFrame strategy to avoid drawing during active scroll.
+     */
+    enableAutoRefresh(debounce = 150) {
+      // First disable any existing handler to avoid duplicates
+      this.disableAutoRefresh();
+      let timer = null;
+      const handler = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          try {
+            this.render();
+          } catch (e) {
+            console.error("AutoSurfer AnnotationManager render error", e);
+          }
+        }, debounce);
+      };
+      window.addEventListener("scroll", handler, true);
+      window.addEventListener("resize", handler);
+      this._autoHandler = handler;
+    },
+    /**
+     * Disable previously-enabled auto-refresh behaviour.
+     */
+    disableAutoRefresh() {
+      if (this._autoHandler) {
+        window.removeEventListener("scroll", this._autoHandler, true);
+        window.removeEventListener("resize", this._autoHandler);
+        this._autoHandler = null;
+      }
+    },
+  };
+
+  // Expose manager globally under new simplified name
+  window.domAnnotator = AnnotationManager;
+
+  // Deprecated alias for backward compatibility (will be removed in a future major release)
+  window.__autosurfer = AnnotationManager;
+
+  // Preserve backwards compatibility for existing clearInteractiveHighlights()
+  window.clearInteractiveHighlights =
+    AnnotationManager.clear.bind(AnnotationManager);
+
+  // -------------------------------------------------------------------------
+  // NOTE: The legacy eager refresh-on-scroll logic below has been superseded by
+  // AnnotationManager.enableAutoRefresh(). It is kept disabled by default to
+  // prevent mid-scroll drift.
+  // -------------------------------------------------------------------------
+  /*
+  // --- LEGACY RESIZE/SCROLL UPDATES (deprecated) ---
   let ticking = false;
   function refresh() {
     if (!ticking) {
@@ -391,4 +478,5 @@
   }
   window.addEventListener("scroll", refresh, true);
   window.addEventListener("resize", refresh);
+  */
 })();

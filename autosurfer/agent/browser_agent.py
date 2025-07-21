@@ -8,6 +8,7 @@ from autosurfer.agent.browser.captcha_handler import CaptchaHandler
 import time
 from typing import List, Dict, Any, Optional
 import re
+import hashlib
 
 
 class AutoSurferAgent:
@@ -114,6 +115,26 @@ class AutoSurferAgent:
 
                 # Create memory entry
                 action_description = self._get_action_description(plan)
+
+                # --- Capture signals for robust loop detection ---
+                # DOM hash
+                dom_html = executor.page.evaluate(
+                    "() => document.body.innerHTML")
+                dom_hash = hashlib.sha256(dom_html.encode(
+                    "utf-8")).hexdigest() if dom_html else None
+                # UI state hash (hash the stringified list of UI elements)
+                ui_elements_state = executor.annotate_ui()
+                ui_state_str = str(ui_elements_state)
+                ui_state_hash = hashlib.sha256(ui_state_str.encode(
+                    "utf-8")).hexdigest() if ui_state_str else None
+                # Scroll position
+                scroll_info = executor.get_scroll_info() if hasattr(
+                    executor, 'get_scroll_info') else None
+                scroll_position = scroll_info["scrollY"] if scroll_info and "scrollY" in scroll_info else None
+                # Retry count (attempts for this action)
+                retry_count = attempt + 1
+                # --- End capture signals ---
+
                 memory_entry = MemoryEntry(
                     timestamp=time.time(),
                     action_type=self._get_primary_action_type(plan),
@@ -123,7 +144,11 @@ class AutoSurferAgent:
                     page_title=str(page_title),
                     attempts=attempt + 1 if not execution_success else 1,
                     error_message=error_message,
-                    ui_elements_count=len(ui_elements)
+                    ui_elements_count=len(ui_elements),
+                    dom_hash=dom_hash,
+                    ui_state_hash=ui_state_hash,
+                    scroll_position=scroll_position,
+                    retry_count=retry_count
                 )
 
                 # Add to memory if enabled

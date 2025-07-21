@@ -19,3 +19,9 @@ test-agents:
 
 test-captcha:
 	python -m examples.test_captcha_detection 
+
+test-scroll:
+	python -m examples.test_scroll_action
+
+test-loop-detection:
+	python -m examples.test_loop_detection 

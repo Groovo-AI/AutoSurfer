@@ -83,10 +83,42 @@ def test_playwright_adapter():
         logger.error(f"❌ Playwright adapter test failed: {e}")
 
 
-def test_adapter_comparison():
-    """Compare both adapters side by side"""
+def test_camoufox_adapter():
+    """Test Camoufox adapter by creating browser and navigating"""
     logger.info("\n" + "="*60)
-    logger.info("COMPARING BOTH ADAPTERS")
+    logger.info("TESTING CAMOUFOX ADAPTER")
+    logger.info("="*60)
+
+    try:
+        # Create Camoufox adapter
+        settings = BrowserSettings(headless=False, stealth_mode=True)
+        browser_session = create_browser_adapter("camoufox", settings)
+
+        logger.info("✅ Camoufox adapter created successfully")
+
+        # Test basic browser functionality
+        page = browser_session.page
+        page.goto("https://www.google.com/search?q=nike")
+        title = page.title()
+        logger.info(f"✅ Navigated to example.com, title: {title}")
+
+        # Test page interaction
+        screenshot_path = TEMP_DIR / "camoufox_test.png"
+        page.screenshot(path=str(screenshot_path))
+        logger.info(f"✅ Screenshot saved as {screenshot_path}")
+
+        # Close browser
+        browser_session.close()
+        logger.info("✅ Camoufox browser closed successfully")
+
+    except Exception as e:
+        logger.error(f"❌ Camoufox adapter test failed: {e}")
+
+
+def test_adapter_comparison():
+    """Compare all adapters side by side"""
+    logger.info("\n" + "="*60)
+    logger.info("COMPARING ALL ADAPTERS")
     logger.info("="*60)
 
     test_url = "https://httpbin.org/status/200"
@@ -133,20 +165,50 @@ def test_adapter_comparison():
         logger.error(f"❌ Playwright failed: {e}")
         playwright_time = None
 
+    # Test Camoufox
+    logger.info("\n--- CAMOUFOX ---")
+    try:
+        start_time = time.time()
+        settings = BrowserSettings(headless=True)
+        browser_session = create_browser_adapter("camoufox", settings)
+
+        page = browser_session.page
+        page.goto(test_url)
+        status = page.content()
+
+        camoufox_time = time.time() - start_time
+        browser_session.close()
+
+        logger.info(f"✅ Camoufox completed in {camoufox_time:.2f}s")
+        logger.info(f"   Status: {len(status)} characters received")
+
+    except Exception as e:
+        logger.error(f"❌ Camoufox failed: {e}")
+        camoufox_time = None
+
     # Comparison
-    if playwright_time and browserbase_time:
+    times = []
+    if browserbase_time:
+        times.append(("BrowserBase", browserbase_time))
+    if playwright_time:
+        times.append(("Playwright", playwright_time))
+    if camoufox_time:
+        times.append(("Camoufox", camoufox_time))
+
+    if len(times) >= 2:
         logger.info(f"\n📊 COMPARISON:")
-        logger.info(f"BrowserBase: {browserbase_time:.2f}s")
-        logger.info(f"Playwright: {playwright_time:.2f}s")
-        difference = browserbase_time - playwright_time
-        logger.info(
-            f"Difference: {difference:+.2f}s ({difference/playwright_time*100:+.1f}%)")
+        for name, time_taken in times:
+            logger.info(f"{name}: {time_taken:.2f}s")
+
+        # Find fastest
+        fastest = min(times, key=lambda x: x[1])
+        logger.info(f"🏆 Fastest: {fastest[0]} ({fastest[1]:.2f}s)")
 
 
 def main():
     """Run browser adapter tests"""
     logger.info("🌐 AutoSurfer Browser Adapter Test Suite")
-    logger.info("This tests both Playwright and BrowserBase adapters")
+    logger.info("This tests Playwright, BrowserBase, and Camoufox adapters")
 
     # Check if BrowserBase is available
     try:
@@ -175,11 +237,24 @@ def main():
         logger.warn(f"⚠️  BrowserBase import error: {e}")
         logger.warn("BrowserBase tests will be skipped")
 
-    # Run tests - BrowserBase first, then Playwright
+    # Check if Camoufox is available
+    try:
+        import camoufox
+        logger.info("✅ Camoufox is available")
+    except ImportError:
+        logger.warn(
+            "⚠️  Camoufox not installed. Install with: pip install camoufox")
+        logger.warn("Camoufox tests will be skipped")
+    except Exception as e:
+        logger.warn(f"⚠️  Camoufox import error: {e}")
+        logger.warn("Camoufox tests will be skipped")
+
+    # Run tests - BrowserBase first, then Playwright, then Camoufox
     tests = [
         test_browserbase_adapter,
         test_playwright_adapter,
         test_adapter_comparison,
+        test_camoufox_adapter,
     ]
 
     for test in tests:

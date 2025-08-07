@@ -2,7 +2,7 @@
 name = "autosurfer"
 version = "0.1"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "browserbase>=1.4.0",
     "langchain>=0.3.25",
@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "undetected-chromedriver>=3.5.5",
     "watchfiles>=1.0.5",
+    "camoufox[geoip] (>=0.4.11,<0.5.0)",
 ]
 
 [project.scripts]

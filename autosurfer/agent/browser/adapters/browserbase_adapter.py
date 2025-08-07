@@ -27,7 +27,20 @@ class BrowserBaseAdapter(BaseBrowserAdapter):
             # Create BrowserBase session
             self.browserbase = Browserbase(api_key=api_key)
             self.session = self.browserbase.sessions.create(
-                project_id=project_id)
+                project_id=project_id,
+                proxies=[
+                    {
+                        "type": "browserbase",
+                        "geolocation": {
+                            "city": "DELHI",
+                            "country": "IN"
+                        }
+                    }
+                ],
+                browser_settings={
+                    "solve_captchas": True,
+                }
+            )
             logger.info(
                 f'[BrowserBase Adapter]: Session created - {self.session.id}')
 

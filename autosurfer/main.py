@@ -1,5 +1,6 @@
 from autosurfer.agent.browser_agent import AutoSurferAgent
 from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
+from pathlib import Path
 
 
 def is_browser_session_valid(browser_session):
@@ -20,14 +21,18 @@ def main():
     # Ask about memory option once at the beginning
     enable_memory = True
 
-    browser_provider = "playwright"
+    browser_provider = "browserbase"
 
     print(f"Memory: {'ENABLED' if enable_memory else 'DISABLED'}")
     print(f"Browser: {browser_provider.upper()}")
     print("Configuration set for all objectives.")
 
     # Create browser session once
-    settings = BrowserSettings(headless=False)
+    user_data_dir = str(
+        Path("~/Library/Application Support/Autosurfer/Browser/Profile1").expanduser())
+    settings = BrowserSettings(
+        headless=False, user_data_dir=user_data_dir
+    )
     browser_session = create_browser_adapter(browser_provider, settings)
 
     while True:

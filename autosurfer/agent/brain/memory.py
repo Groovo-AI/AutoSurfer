@@ -149,5 +149,8 @@ class AgentMemory:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(self._serialize(), f, ensure_ascii=False, indent=2)
 
-        logger.info(f"🧠 Memory saved to {file_path}")
+        # Only log the first save to avoid spam
+        if not hasattr(self, '_save_logged'):
+            logger.info(f"🧠 Memory saved to {file_path}")
+            self._save_logged = True
         return file_path

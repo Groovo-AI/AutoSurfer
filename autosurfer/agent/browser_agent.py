@@ -71,7 +71,14 @@ class AutoSurferAgent:
                 # Execute action with retry logic
                 execution_success = False
                 error_message = None
+                final_url = current_url  # Default to current URL
+                final_title = page_title  # Default to current title
+
                 for attempt in range(self.max_retries):
+                    # Capture current state for this attempt
+                    attempt_url = self.browser_session.page.url
+                    attempt_title = self.browser_session.page.title()
+
                     try:
                         executor.execute(plan)
                         execution_success = True
@@ -79,18 +86,44 @@ class AutoSurferAgent:
                         logger.info(
                             f"✅ Action executed successfully on attempt {attempt + 1}")
 
+                        # Capture final URL and title after successful action
+                        final_url = self.browser_session.page.url
+                        final_title = self.browser_session.page.title()
+
                         # If the plan started with a navigation, log new URL/title
                         if any(it.action.type == "goto" for it in plan.actions):
-                            new_url = self.browser_session.page.url
-                            new_title = self.browser_session.page.title()
-                            logger.info(f"📍 URL after navigation: {new_url}")
+                            logger.info(f"📍 URL after navigation: {final_url}")
                             logger.info(
-                                f"📄 Title after navigation: {new_title}")
+                                f"📄 Title after navigation: {final_title}")
 
+                        # Log successful attempt immediately
+                        self._log_memory_entry(
+                            plan=plan,
+                            success=True,
+                            page_url=final_url,
+                            page_title=final_title,
+                            attempt_number=attempt + 1,
+                            error_message=None,
+                            ui_elements=ui_elements,
+                            executor=executor
+                        )
                         break
+
                     except Exception as e:
                         error_message = str(e)
                         logger.warn(f"❌ Attempt {attempt + 1} failed: {e}")
+
+                        # Log failed attempt immediately
+                        self._log_memory_entry(
+                            plan=plan,
+                            success=False,
+                            page_url=attempt_url,
+                            page_title=attempt_title,
+                            attempt_number=attempt + 1,
+                            error_message=error_message,
+                            ui_elements=ui_elements,
+                            executor=executor
+                        )
 
                         # Check if failure might be due to captcha
                         if not captcha_handler.handle_captcha_detection():
@@ -113,61 +146,8 @@ class AutoSurferAgent:
                 if not execution_success and not captcha_handler.handle_captcha_detection():
                     break
 
-                # Create memory entry
-                action_description = self._get_action_description(plan)
-
-                # --- Capture signals for robust loop detection ---
-                # DOM hash
-                dom_html = executor.page.evaluate(
-                    "() => document.body.innerHTML")
-                dom_hash = hashlib.sha256(dom_html.encode(
-                    "utf-8")).hexdigest() if dom_html else None
-                # UI state hash (hash the stringified list of UI elements)
-                ui_elements_state = executor.annotate_ui()
-                ui_state_str = str(ui_elements_state)
-                ui_state_hash = hashlib.sha256(ui_state_str.encode(
-                    "utf-8")).hexdigest() if ui_state_str else None
-                # Scroll position
-                scroll_info = executor.get_scroll_info() if hasattr(
-                    executor, 'get_scroll_info') else None
-                scroll_position = scroll_info["scrollY"] if scroll_info and "scrollY" in scroll_info else None
-                # Retry count (attempts for this action)
-                retry_count = attempt + 1
-                # --- End capture signals ---
-
-                memory_entry = MemoryEntry(
-                    timestamp=time.time(),
-                    action_type=self._get_primary_action_type(plan),
-                    description=action_description,
-                    success=execution_success,
-                    page_url=current_url,
-                    page_title=str(page_title),
-                    attempts=attempt + 1 if not execution_success else 1,
-                    error_message=error_message,
-                    ui_elements_count=len(ui_elements),
-                    dom_hash=dom_hash,
-                    ui_state_hash=ui_state_hash,
-                    scroll_position=scroll_position,
-                    retry_count=retry_count
-                )
-
-                # Add to memory if enabled
-                if self.memory:
-                    self.memory.add_entry(memory_entry)
-
-                    # Build concise memory snapshot
-                    snapshot = self.memory.get_progress_context()
-                    extra = []
-                    if self.memory.accomplishments:
-                        extra.append(
-                            f"Accomplishments: {len(self.memory.accomplishments)}")
-                    if self.memory.failures:
-                        extra.append(f"Failures: {len(self.memory.failures)}")
-                    if extra:
-                        snapshot += "\n" + " | ".join(extra)
-
-                    logger.info(f"[MEM] {snapshot}")
-                else:
+                # Update action count for non-memory mode
+                if not self.memory:
                     action_count += 1
 
                 # Check if task is complete
@@ -200,10 +180,6 @@ class AutoSurferAgent:
             logger.error(f"Agent execution failed: {e}")
             raise
         finally:
-            # Persist memory (if enabled) before closing the browser
-            if self.memory:
-                self.memory.save_to_file()
-
             logger.info("Agent execution finished!")
             self.browser_session.close()
 
@@ -227,6 +203,73 @@ class AutoSurferAgent:
                 descriptions.append(f"{item.action.type}: {item.thought}")
 
         return "; ".join(descriptions)
+
+    def _log_memory_entry(self, plan, success, page_url, page_title, attempt_number, error_message, ui_elements, executor):
+        """Log a memory entry in real-time and save memory immediately"""
+        if not self.memory:
+            return
+
+        action_description = self._get_action_description(plan)
+
+        # --- Capture signals for robust loop detection ---
+        try:
+            # DOM hash
+            dom_html = executor.page.evaluate("() => document.body.innerHTML")
+            dom_hash = hashlib.sha256(dom_html.encode(
+                "utf-8")).hexdigest() if dom_html else None
+            # UI state hash (hash the stringified list of UI elements)
+            ui_state_str = str(ui_elements)
+            ui_state_hash = hashlib.sha256(ui_state_str.encode(
+                "utf-8")).hexdigest() if ui_state_str else None
+            # Scroll position
+            scroll_info = executor.get_scroll_info() if hasattr(
+                executor, 'get_scroll_info') else None
+            scroll_position = scroll_info["scrollY"] if scroll_info and "scrollY" in scroll_info else None
+        except Exception as e:
+            logger.debug(f"Failed to capture some signals: {e}")
+            dom_hash = None
+            ui_state_hash = None
+            scroll_position = None
+
+        # --- End capture signals ---
+
+        memory_entry = MemoryEntry(
+            timestamp=time.time(),
+            action_type=self._get_primary_action_type(plan),
+            description=action_description,
+            success=success,
+            page_url=page_url,
+            page_title=str(page_title),
+            attempts=attempt_number,
+            error_message=error_message,
+            ui_elements_count=len(ui_elements),
+            dom_hash=dom_hash,
+            ui_state_hash=ui_state_hash,
+            scroll_position=scroll_position,
+            retry_count=attempt_number
+        )
+
+        # Add to memory immediately
+        self.memory.add_entry(memory_entry)
+
+        # Build concise memory snapshot
+        snapshot = self.memory.get_progress_context()
+        extra = []
+        if self.memory.accomplishments:
+            extra.append(
+                f"Accomplishments: {len(self.memory.accomplishments)}")
+        if self.memory.failures:
+            extra.append(f"Failures: {len(self.memory.failures)}")
+        if extra:
+            snapshot += "\n" + " | ".join(extra)
+
+        logger.info(f"[MEM] {snapshot}")
+
+        # Save memory to file immediately after each attempt
+        try:
+            self.memory.save_to_file()
+        except Exception as e:
+            logger.debug(f"Failed to save memory to file: {e}")
 
     def _get_primary_action_type(self, plan) -> str:
         """Get the primary action type from the plan"""

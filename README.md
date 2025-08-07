@@ -144,6 +144,14 @@ settings = BrowserSettings(headless=True, stealth_mode=True)
 # For Playwright (local) - no additional setup required
 browser_session = create_browser_adapter("playwright", settings)
 
+# For Playwright with persistent user data directory
+settings_with_persistence = BrowserSettings(
+    headless=True, 
+    stealth_mode=True,
+    user_data_dir="/path/to/your/user/data/directory"
+)
+browser_session = create_browser_adapter("playwright", settings_with_persistence)
+
 # For BrowserBase (cloud) - requires API credentials
 browser_session = create_browser_adapter("browserbase", settings)
 
@@ -155,6 +163,41 @@ agent = AutoSurferAgent(
 )
 agent.run()
 ```
+
+---
+
+## 💾 Persistent User Data Directory (Playwright)
+
+When using Playwright, you can specify a `user_data_dir` to persist browser data between sessions:
+
+```python
+from autosurfer.agent.browser.adapters import BrowserSettings, create_browser_adapter
+
+# Create settings with persistent user data directory
+settings = BrowserSettings(
+    headless=False,
+    stealth_mode=True,
+    user_data_dir="/path/to/persistent/data"
+)
+
+# This will persist cookies, cache, and other browser data
+browser_session = create_browser_adapter("playwright", settings)
+```
+
+**What gets persisted:**
+- 🍪 Cookies and session data
+- 💾 Browser cache and storage
+- 🔐 Saved passwords and form data
+- 📚 Browsing history
+- ⚙️ Browser preferences and settings
+
+**Use cases:**
+- Maintaining login sessions across agent runs
+- Preserving website preferences and settings
+- Building persistent browsing profiles for agents
+- Testing with realistic browser state
+
+See `examples/test_playwright_user_data.py` for a complete example.
 
 ---
 
@@ -179,6 +222,7 @@ The CLI will prompt you to:
 | Script                               | Purpose                                                     |
 | ------------------------------------ | ----------------------------------------------------------- |
 | `examples/test_launch_browsers.py`   | Tests both Playwright and BrowserBase adapters side by side |
+| `examples/test_playwright_user_data.py` | Demonstrates Playwright with persistent user data directory |
 | `examples/test_agent_memory.py`      | Demonstrates the agent with and without task memory         |
 | `examples/test_browser_agents.py`    | Runs multiple agents in parallel for stress-testing         |
 | `examples/test_captcha_detection.py` | Shows basic captcha detection workflow                      |

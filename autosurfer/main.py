@@ -6,7 +6,8 @@ def is_browser_session_valid(browser_session):
     """Check if the browser session is still valid"""
     try:
         # Try to access the page to see if it's still responsive
-        browser_session.page.title()
+        # Use a simple JavaScript evaluation instead of title() which might fail
+        browser_session.page.evaluate("() => document.readyState")
         return True
     except Exception:
         return False
@@ -17,15 +18,9 @@ def main():
     print("Type 'quit', 'exit', or press Ctrl+C to stop")
 
     # Ask about memory option once at the beginning
-    memory_choice = input(
-        "\n[Bot] Enable agent memory? (y/n, default: n): ").strip().lower()
-    enable_memory = memory_choice in ['y', 'yes']
+    enable_memory = True
 
-    # Ask about browser provider once at the beginning
-    provider_choice = input(
-        "\n[Bot] Use BrowserBase? (y/n, default: n): ").strip().lower()
-    browser_provider = "browserbase" if provider_choice in [
-        'y', 'yes'] else "playwright"
+    browser_provider = "playwright"
 
     print(f"Memory: {'ENABLED' if enable_memory else 'DISABLED'}")
     print(f"Browser: {browser_provider.upper()}")

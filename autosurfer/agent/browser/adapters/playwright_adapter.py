@@ -21,10 +21,16 @@ class PlaywrightAdapter(BaseBrowserAdapter):
         if settings.args:
             browser_args.extend(settings.args)
 
+        launch_options = {
+            "headless": settings.headless,
+            "args": browser_args
+        }
+
+        if settings.user_data_dir:
+            launch_options["user_data_dir"] = settings.user_data_dir
+
         self.browser: Browser = self.playwright.chromium.launch(
-            headless=settings.headless,
-            args=browser_args
-        )
+            **launch_options)
 
         self.setup_browser()
         logger.info('[Playwright Adapter]: Initialized')

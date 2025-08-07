@@ -9,6 +9,7 @@ class BrowserSettings:
     headless: bool = False
     stealth_mode: bool = False
     args: Optional[List[str]] = None
+    user_data_dir: Optional[str] = None
 
 
 class BrowserAdapter(Protocol):

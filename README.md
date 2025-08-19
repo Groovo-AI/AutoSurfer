@@ -42,7 +42,7 @@ It's not just a bot. It's a digital entity.
 - **Python 3.11+** — Core runtime
 - **Playwright** — Local browser automation
 - **BrowserBase** — Cloud browser automation with session replay
-- **OpenAI** — For reasoning and task planning
+- **Multiple LLM Providers** — OpenAI, Gemini, Claude, DeepSeek for reasoning and task planning
 - **JavaScript** — For DOM annotation and interaction overlay
 
 ---
@@ -87,13 +87,18 @@ By contributing, you're helping build a new generation of agents that live, work
 
 Whether you're a researcher, hacker, designer, or writer — **we welcome your magic.**
 
----
+# OpenAI 
+OPENAI_API_KEY=your_openai_api_key
 
-## 🛠️ Contributing
+# Gemini 
+GEMINI_API_KEY=your_gemini_api_key
 
-Coming soon! For now, feel free to fork the repo, star it, and suggest features or bugfixes via Issues.
+# Claude 
+CLAUDE_API_KEY=your_claude_api_key
 
----
+# DeepSeek 
+DEEPSEEK_API_KEY=your_deepseek_api_key
+```
 
 ## 📣 Spread the Word
 
@@ -197,7 +202,7 @@ python -m examples.test_launch_browsers
 
 ---
 
-## 🏗️ Architecture
+## 许可证
 
 AutoSurfer uses a clean dependency injection pattern:
 

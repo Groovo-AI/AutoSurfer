@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "browserbase>=1.4.0",
     "langchain>=0.3.25",
+    "langchain-anthropic>=0.3.0",
     "langchain-community>=0.3.25",
     "langchain-openai>=0.3.22",
     "mss>=10.0.0",

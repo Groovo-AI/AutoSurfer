@@ -15,6 +15,8 @@ class Config:
         OS = "unknown"
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 
     # BrowserBase configuration
     BROWSERBASE_API_KEY = os.getenv("BROWSERBASE_API_KEY")
